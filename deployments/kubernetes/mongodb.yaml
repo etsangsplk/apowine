@@ -5,7 +5,7 @@ metadata:
   labels:
     app: aporeto-mongodb
   name: aporeto-mongodb
-  namespace: kube-system
+  namespace: apowine
 spec:
   template:
     metadata:
@@ -25,7 +25,7 @@ kind: Service
 apiVersion: v1
 metadata:
   name: mongodb
-  namespace: kube-system
+  namespace: apowine
 spec:
   selector:
     app: aporeto-mongodb

@@ -2,7 +2,7 @@ apiVersion: batch/v1
 kind: Job
 metadata:
   name: apowine-producer
-  namespace: kube-system
+  namespace: apowine
 spec:
   template:
     metadata:

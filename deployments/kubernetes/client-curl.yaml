@@ -1,0 +1,49 @@
+apiVersion: extensions/v1beta1
+kind: ReplicaSet
+metadata:
+  name: beer-getter
+  namespace: apowine
+  labels:
+    role: beer-getter
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      role: beer-getter
+  template:
+    metadata:
+      name: beer-getter
+      labels:
+        role: beer-getter
+    spec:
+      containers:
+          - name: client
+            image: aporeto/apowine-client
+            env:
+            - name: URI
+              value: "server:3000/beer/random"
+---
+apiVersion: extensions/v1beta1
+kind: ReplicaSet
+metadata:
+  name: wine-getter
+  namespace: apowine
+  labels:
+    role: wine-getter
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      role: wine-getter
+  template:
+    metadata:
+      name: wine-getter
+      labels:
+        role: wine-getter
+    spec:
+      containers:
+          - name: client
+            image: aporeto/apowine-client
+            env:
+            - name: URI
+              value: "server:3000/wine/random"

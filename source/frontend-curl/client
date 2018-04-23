@@ -2,6 +2,6 @@
 
 while :
 do
-  curl -s --connect-timeout 1 --retry 0 $SERVER/beer/random
+  curl -s --connect-timeout 1 --retry 0 $URI
 	sleep 1
 done

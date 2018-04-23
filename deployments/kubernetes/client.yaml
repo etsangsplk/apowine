@@ -5,7 +5,7 @@ metadata:
   labels:
     app: aporeto-client
   name: aporeto-client
-  namespace: kube-system
+  namespace: apowine
 spec:
   template:
     metadata:
@@ -44,7 +44,7 @@ kind: Service
 apiVersion: v1
 metadata:
   name: client
-  namespace: kube-system
+  namespace: apowine
 spec:
   selector:
     app: aporeto-client
@@ -57,7 +57,7 @@ kind: Service
 apiVersion: v1
 metadata:
   name: client-public
-  namespace: kube-system
+  namespace: apowine
 spec:
   selector:
     app: aporeto-client

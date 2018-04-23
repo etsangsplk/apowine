@@ -4,7 +4,7 @@ metadata:
   labels:
     app: apowine-server
   name: apowine-server
-  namespace: kube-system
+  namespace: apowine
 spec:
   template:
     metadata:
@@ -63,7 +63,7 @@ kind: Service
 apiVersion: v1
 metadata:
   name: server
-  namespace: kube-system
+  namespace: apowine
 spec:
   selector:
     app: apowine-server
@@ -76,7 +76,7 @@ kind: Service
 apiVersion: v1
 metadata:
   name: server-public
-  namespace: kube-system
+  namespace: apowine
 spec:
   selector:
     app: apowine-server

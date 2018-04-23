@@ -1,0 +1,36 @@
+apiVersion: extensions/v1beta1
+kind: ReplicaSet
+metadata:
+  creationTimestamp: null
+  labels:
+    app: aporeto-mongodb
+  name: aporeto-mongodb
+  namespace: kube-system
+spec:
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        app: aporeto-mongodb
+    spec:
+      containers:
+      - image: mongo:latest
+        imagePullPolicy: Always
+        name: aporeto-mongodb
+        resources: {}
+status:
+  replicas: 0
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: mongodb
+  namespace: kube-system
+spec:
+  selector:
+    app: aporeto-mongodb
+  ports:
+    - protocol: TCP
+      name: port2
+      port: 27017
+      targetPort: 27017

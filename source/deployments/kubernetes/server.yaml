@@ -1,0 +1,87 @@
+apiVersion: extensions/v1beta1
+kind: ReplicaSet
+metadata:
+  labels:
+    app: apowine-server
+  name: apowine-server
+  namespace: kube-system
+spec:
+  template:
+    metadata:
+      labels:
+        app: apowine-server
+    spec:
+      containers:
+        - image: sibiataporeto/apowine-server:latest
+          imagePullPolicy: Always
+          name: apowine-server
+          env:
+             - name: APOWINE_LOGLEVEL
+               valueFrom:
+                 configMapKeyRef:
+                   key: apowine.log_level
+                   name: apowine-config
+                   optional: true
+             - name: APOWINE_MONGOURL
+               valueFrom:
+                 configMapKeyRef:
+                   key: apowine.server_endpoint
+                   name: apowine-config
+                   optional: true
+             - name: APOWINE_MONGOUSERNAME
+               valueFrom:
+                 configMapKeyRef:
+                   key: apowine.server_user
+                   name: apowine-config
+                   optional: true
+             - name: APOWINE_MONGOPASSWORD
+               valueFrom:
+                 configMapKeyRef:
+                   key: apowine.server_password
+                   name: apowine-config
+                   optional: true
+             - name: APOWINE_MONGODATABASENAME
+               valueFrom:
+                 configMapKeyRef:
+                   key: apowine.server_db
+                   name: apowine-config
+                   optional: true
+             - name: APOWINE_MONGOCOLLECTIONAME
+               valueFrom:
+                  configMapKeyRef:
+                    key: apowine.server_collection
+                    name: apowine-config
+                    optional: true
+             - name: APOWINE_DBSKIPTLS
+               valueFrom:
+                 configMapKeyRef:
+                   key: apowine.server_insecure_skip_verify
+                   name: apowine-config
+                   optional: true
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: server
+  namespace: kube-system
+spec:
+  selector:
+    app: apowine-server
+  ports:
+    - protocol: TCP
+      port: 3000
+      targetPort: 3000
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: server-public
+  namespace: kube-system
+spec:
+  selector:
+    app: apowine-server
+  ports:
+  - protocol: TCP
+    port: 80
+    targetPort: 3000
+  type: LoadBalancer

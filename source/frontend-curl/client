@@ -1,0 +1,7 @@
+#!/bin/sh
+
+while :
+do
+  curl -s --connect-timeout 1 --retry 0 $SERVER/beer/random
+	sleep 1
+done

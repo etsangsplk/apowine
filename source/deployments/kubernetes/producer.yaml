@@ -1,0 +1,57 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: apowine-producer
+  namespace: kube-system
+spec:
+  template:
+    metadata:
+      name: apowine-producer
+    spec:
+      containers:
+      - name: apowine-producer
+        image: sibiataporeto/apowine-producer:latest
+        env:
+           - name: APOWINE_LOGLEVEL
+             valueFrom:
+               configMapKeyRef:
+                 key: apowine.log_level
+                 name: apowine-config
+                 optional: true
+           - name: APOWINE_MONGOURL
+             valueFrom:
+               configMapKeyRef:
+                 key: apowine.server_endpoint
+                 name: apowine-config
+                 optional: true
+           - name: APOWINE_MONGOUSERNAME
+             valueFrom:
+               configMapKeyRef:
+                 key: apowine.server_user
+                 name: apowine-config
+                 optional: true
+           - name: APOWINE_MONGOPASSWORD
+             valueFrom:
+               configMapKeyRef:
+                 key: apowine.server_password
+                 name: apowine-config
+                 optional: true
+           - name: APOWINE_MONGODATABASENAME
+             valueFrom:
+               configMapKeyRef:
+                 key: apowine.server_db
+                 name: apowine-config
+                 optional: true
+           - name: APOWINE_MONGOCOLLECTIONAME
+             valueFrom:
+                configMapKeyRef:
+                  key: apowine.server_collection
+                  name: apowine-config
+                  optional: true
+           - name: APOWINE_DBSKIPTLS
+             valueFrom:
+               configMapKeyRef:
+                 key: apowine.producer_insecure_skip_verify
+                 name: apowine-config
+                 optional: true
+      restartPolicy: Never

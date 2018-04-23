@@ -1,0 +1,68 @@
+apiVersion: extensions/v1beta1
+kind: ReplicaSet
+metadata:
+  creationTimestamp: null
+  labels:
+    app: aporeto-client
+  name: aporeto-client
+  namespace: kube-system
+spec:
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        app: aporeto-client
+    spec:
+      containers:
+        - image: sibiataporeto/apowine-client:latest
+          imagePullPolicy: Always
+          env:
+             - name: APOWINE_LOGLEVEL
+               valueFrom:
+                 configMapKeyRef:
+                   key: apowine.log_level
+                   name: apowine-config
+                   optional: true
+             - name: APOWINE_SERVERIP
+               valueFrom:
+                 configMapKeyRef:
+                   key: apowine.server_ip
+                   name: apowine-config
+                   optional: true
+             - name: APOWINE_SERVERPORT
+               valueFrom:
+                configMapKeyRef:
+                    key: apowine.server_port
+                    name: apowine-config
+                    optional: true
+          name: aporeto-client
+          resources: {}
+status:
+  replicas: 0
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: client
+  namespace: kube-system
+spec:
+  selector:
+    app: aporeto-client
+  ports:
+    - protocol: TCP
+      port: 3005
+      targetPort: 3005
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: client-public
+  namespace: kube-system
+spec:
+  selector:
+    app: aporeto-client
+  ports:
+  - protocol: TCP
+    port: 80
+    targetPort: 3005
+  type: LoadBalancer

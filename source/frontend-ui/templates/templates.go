@@ -9,17 +9,15 @@ const UITemplate = `
   <title>APOWINE</title>
   <style>
   .bodyStyle{
-    background-color: brown;
+    background-color: black;
     color: white;
     font-size: 20px;
-    font-family: arial;
+    font-family: "Lucida Console", Monaco, monospace;
   }
 
     #popupbox{
   position: relative;
-  background: #FBFBF0;
-  border: solid #000000 2px;
-  font-family: arial;
+  font-family: "Lucida Console", Monaco, monospace;
   visibility: hidden;
   }
 
@@ -46,7 +44,22 @@ const UITemplate = `
 
   .more{
     text-align:center;
-    margin-top: 20%;
+    margin-top: 25%;
+  }
+
+  .button {
+      background-color: #008CBA;
+      border: none;
+      border-radius: 25px;
+      color: white;
+      padding: 100px 100px;
+      text-align: center;
+      text-decoration: none;
+      display: inline-block;
+      font-size: 20px;
+      font-family: "Lucida Console", Monaco, monospace;
+      margin: 40px 40px;
+      cursor: pointer;
   }
 
   </style>
@@ -55,19 +68,12 @@ const UITemplate = `
 <body class="bodyStyle">
 <h1 class="titleHeader">APOWINE</h1>
 <div class="beer">
-  <h2>BEER</h2>
-  <h4>RANDOM BEER</h4>
-  <button onclick="RandomDrink('beer');">Random</button>
+  <button class="button" onclick="RandomDrink('beer');">BEER</button>
 </div>
 <div class="wine">
-  <h2>WINE</h2>
-  <h4>RANDOM WINE</h4>
-  <button onclick="RandomDrink('wine');">Random</button>
+  <button class="button" onclick="RandomDrink('wine');">WINE</button>
 </div>
-<div class="random">
-  <h2>RANDOM DRINK</h2>
-  <button onclick="RandomDrink('random');">Random Drink</button>
-</div>
+<div class="RbeerOP"><div>
 <div class="more">
 <div id="popupbox">
 <form name="more" action="" method="post">
@@ -112,20 +118,19 @@ const UITemplate = `
 
 <p><a href="javascript:more('show');">more>>></a></p>
 </div>
-</body>
-<script>
+<script type ="text/javascript">
 function CreateDrink(drinkType){
 
   var request = new XMLHttpRequest();
   if (drinkType == "beer"){
   var drinkName = document.getElementById("CbeerValue").value;
-  request.open('POST', '/beer?type=create', true);
+  request.open('POST', '/drink?drinkType=beer&&operationType=create&&name='+drinkName, true);
   request.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
   alert("BeerName: "+drinkName)
   request.send(JSON.stringify({beername:drinkName}));
 }else{
   var drinkName = document.getElementById("CwineValue").value;
-  request.open('POST', '/wine?type=create', true);
+  request.open('POST', '/drink?drinkType=wine&&operationType=create&&name='+drinkName, true);
   request.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
   alert("WineName: "+drinkName)
   request.send(JSON.stringify({winename:drinkName}));
@@ -136,7 +141,7 @@ function ReadDrink(drinkType){
   var request = new XMLHttpRequest();
   if (drinkType=="beer"){
   var id = document.getElementById("RbeerID").value;
-  request.open('GET', '/beer/'+id, true);
+  request.open('GET', '/drink?drinkType=beer&&operationType=read&&id='+id, true);
   request.onload=function(){
     var name = JSON.parse(request.response)
     alert("ID: "+ name.id+"\n"+ "BeerName: "+name.beername)
@@ -144,7 +149,7 @@ function ReadDrink(drinkType){
   request.send();
 }else{
   var id = document.getElementById("RwineID").value;
-  request.open('GET', '/wine/'+id, true);
+  request.open('GET', '/drink?drinkType=wine&&operationType=read&&id='+id, true);
   request.onload=function(){
     var name = JSON.parse(request.response)
     alert("ID: "+ name.id+"\n"+"WineName: "+name.winename)
@@ -159,14 +164,14 @@ var request = new XMLHttpRequest();
 if (drinkType == "beer"){
   var drinkID = document.getElementById("UbeerID").value;
   var drinkName = document.getElementById("UbeerValue").value;
-  request.open('PUT', '/beer', true);
+  request.open('PUT', '/drink?drinkType=beer&&operationType=update&&id='+drinkID+'&&name='+drinkName, true);
   request.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
   request.send(JSON.stringify({id:drinkID,beername:drinkName}));
   alert("ID: "+ drinkID+"\n"+"BeerName: "+drinkName)
 }else{
   var drinkID = document.getElementById("UwineID").value;
   var drinkName = document.getElementById("UwineValue").value;
-  request.open('PUT', '/wine', true);
+  request.open('PUT', '/drink?drinkType=wine&&operationType=update&&id='+drinkID+'&&name='+drinkName, true);
   request.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
   request.send(JSON.stringify({id:drinkID,winename:drinkName}));
   alert("ID: "+ drinkID+"\n"+"WineName: "+drinkName)
@@ -177,11 +182,11 @@ function DeleteDrink(drinkType){
   var request = new XMLHttpRequest();
   if (drinkType=="beer"){
   var id = document.getElementById("DbeerID").value;
-  request.open('DELETE', '/beer/'+id, true);
+  request.open('DELETE', '/drink?drinkType=beer&&operationType=delete&&id='+id, true);
   request.send();
 }else{
   var id = document.getElementById("DwineID").value;
-  request.open('DELETE', '/wine/'+id, true);
+  request.open('DELETE', '/drink?drinkType=wine&&operationType=delete&&id='+id, true);
   request.send();
 }
 }
@@ -189,23 +194,25 @@ function DeleteDrink(drinkType){
 function RandomDrink(drinkType){
   var request = new XMLHttpRequest();
   if (drinkType=="beer"){
-  request.open('GET', '/beer?type=random', true);
+  request.open('GET', '/drink?drinkType=beer&&operationType=random', true);
   request.onload=function(){
     var name = JSON.parse(request.response)
     alert("ID: "+ name.id+"\n"+ "BeerName: "+name.beername)
+    document.getElementById("RbeerOP").innerHTML = "ID";
   }
   request.send();
 }else if (drinkType=="wine"){
-  request.open('GET', '/wine?type=random', true);
+  request.open('GET', '/drink?drinkType=wine&&operationType=random', true);
   request.onload=function(){
     var name = JSON.parse(request.response)
     alert("ID: "+ name.id+"\n"+"WineName: "+name.winename)
   }
   request.send();
 }else {
-  request.open('GET', '/random?type=random', true);
+  request.open('GET', '/random', true);
   request.onload=function(){
     var name = JSON.parse(request.response)
+    console.log(name)
     if (name.type=="beer"){
     alert("ID: "+ name.id+"\n"+ "BeerName: "+name.beername)
   }else{
@@ -224,6 +231,8 @@ if(showhide == "show"){
 }
 
 </script>
+</body>
+
 </html>
 
 `

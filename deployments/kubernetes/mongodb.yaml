@@ -3,20 +3,20 @@ kind: ReplicaSet
 metadata:
   creationTimestamp: null
   labels:
-    app: aporeto-mongodb
-  name: aporeto-mongodb
+    app: apowine-mongodb
+  name: apowine-mongodb
   namespace: apowine
 spec:
   template:
     metadata:
       creationTimestamp: null
       labels:
-        app: aporeto-mongodb
+        app: apowine-mongodb
     spec:
       containers:
       - image: mongo:latest
         imagePullPolicy: Always
-        name: aporeto-mongodb
+        name: apowine-mongodb
         resources: {}
 status:
   replicas: 0
@@ -28,7 +28,7 @@ metadata:
   namespace: apowine
 spec:
   selector:
-    app: aporeto-mongodb
+    app: apowine-mongodb
   ports:
     - protocol: TCP
       name: port2

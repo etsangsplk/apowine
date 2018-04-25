@@ -1,0 +1,5 @@
+source/producer/producer-beer/cmd/producerbeer
+source/producer/producer-wine/cmd/producerwine
+source/server/cmd/server
+source/frontend-ui/client/cmd/frontend
+source/frontend-ui/client/cmd/docker/frontend

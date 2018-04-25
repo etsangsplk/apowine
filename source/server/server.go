@@ -86,7 +86,6 @@ func (s *Server) CreateDrinkEndPoint(w http.ResponseWriter, r *http.Request) {
 
 	drinkName := strings.SplitAfter(r.URL.RequestURI(), "/")
 	decoder := json.NewDecoder(r.Body)
-
 	err := s.mongodb.Insert(decoder, drinkName[1])
 	if err != nil {
 		zap.L().Error("error inserting data from database", zap.Error(err))

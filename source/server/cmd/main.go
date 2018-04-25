@@ -14,9 +14,9 @@ import (
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 
-	"github.com/aporeto-inc/apowine/source/configuration"
 	"github.com/aporeto-inc/apowine/source/mongodb-lib"
 	"github.com/aporeto-inc/apowine/source/server"
+	"github.com/aporeto-inc/apowine/source/server/configuration"
 	"github.com/aporeto-inc/apowine/source/version"
 	"github.com/gorilla/mux"
 )
@@ -31,6 +31,7 @@ func banner(version, revision string) {
 		|  _  ||  __/| | | || |/\| | | | | .\  ||  __|
 		| | | || |   \ \_/ /\  /\  /_| |_| |\  || |___
 		\_| |_/\_|    \___/  \/  \/ \___/\_| \_/\____/
+		SERVER
 _______________________________________________________________
              %s - %s
                                                  🚀  by Aporeto
@@ -57,7 +58,7 @@ func main() {
 		cfg.MongoURL,
 	}
 
-	session, err := mongodb.NewMongoSession(host, cfg.MongoUsername, cfg.MongoPassword, cfg.MongoDatabaseName, cfg.MongoCollectionName)
+	session, err := mongodb.NewMongoSession(host, "", "", cfg.MongoDatabaseName, cfg.MongoCollectionName)
 	if err != nil {
 		log.Fatal("error Creating Session", err)
 	}

@@ -1,0 +1,17 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: apowine-producerwine
+  namespace: apowine
+spec:
+  template:
+    metadata:
+      name: apowine-producerwine
+    spec:
+      containers:
+      - name: apowine-producerwine
+        image: aporeto/apowine-producerwine:latest
+        env:
+           - name: APOWINE_SERVERURI
+             value: http://server:3000/wine
+      restartPolicy: Never

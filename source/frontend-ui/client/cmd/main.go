@@ -12,8 +12,8 @@ import (
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 
-	"github.com/aporeto-inc/apowine/source/configuration"
 	"github.com/aporeto-inc/apowine/source/frontend-ui/client"
+	"github.com/aporeto-inc/apowine/source/frontend-ui/configuration"
 	"github.com/aporeto-inc/apowine/source/version"
 	"github.com/gorilla/mux"
 )
@@ -54,13 +54,10 @@ func main() {
 
 	r.HandleFunc("/", client.GenerateClientPage)
 
-	r.HandleFunc("/beer", func(w http.ResponseWriter, r *http.Request) {
-		client.GenerateBeerManipulator(w, r, cfg.ServerIP, cfg.ServerPort)
-	})
+	clientHandler := client.NewClient(cfg.ServerAddress)
 
-	r.HandleFunc("/wine", func(w http.ResponseWriter, r *http.Request) {
-		client.GenerateWineManipulator(w, r, cfg.ServerIP, cfg.ServerPort)
-	})
+	r.HandleFunc("/drink", clientHandler.GenerateDrinkManipulator)
+	r.HandleFunc("/random", clientHandler.GenerateRandomDrinkManipulator)
 
 	go func() {
 		if err := http.ListenAndServe(cfg.ClientAddress, r); err != nil {

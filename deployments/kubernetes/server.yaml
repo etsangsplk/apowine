@@ -6,58 +6,21 @@ metadata:
   name: apowine-server
   namespace: apowine
 spec:
+  replicas: 3
   template:
     metadata:
       labels:
         app: apowine-server
     spec:
       containers:
-        - image: sibiataporeto/apowine-server:latest
+        - image: aporeto/apowine-server:latest
           imagePullPolicy: Always
-          name: apowine-server
           env:
-             - name: APOWINE_LOGLEVEL
-               valueFrom:
-                 configMapKeyRef:
-                   key: apowine.log_level
-                   name: apowine-config
-                   optional: true
              - name: APOWINE_MONGOURL
-               valueFrom:
-                 configMapKeyRef:
-                   key: apowine.server_endpoint
-                   name: apowine-config
-                   optional: true
-             - name: APOWINE_MONGOUSERNAME
-               valueFrom:
-                 configMapKeyRef:
-                   key: apowine.server_user
-                   name: apowine-config
-                   optional: true
-             - name: APOWINE_MONGOPASSWORD
-               valueFrom:
-                 configMapKeyRef:
-                   key: apowine.server_password
-                   name: apowine-config
-                   optional: true
-             - name: APOWINE_MONGODATABASENAME
-               valueFrom:
-                 configMapKeyRef:
-                   key: apowine.server_db
-                   name: apowine-config
-                   optional: true
-             - name: APOWINE_MONGOCOLLECTIONAME
-               valueFrom:
-                  configMapKeyRef:
-                    key: apowine.server_collection
-                    name: apowine-config
-                    optional: true
-             - name: APOWINE_DBSKIPTLS
-               valueFrom:
-                 configMapKeyRef:
-                   key: apowine.server_insecure_skip_verify
-                   name: apowine-config
-                   optional: true
+               value: mongodb:27017
+             - name: APOWINE_SERVERPORT
+               value: :3000
+          name: apowine-server
 ---
 kind: Service
 apiVersion: v1
@@ -71,17 +34,3 @@ spec:
     - protocol: TCP
       port: 3000
       targetPort: 3000
----
-kind: Service
-apiVersion: v1
-metadata:
-  name: server-public
-  namespace: apowine
-spec:
-  selector:
-    app: apowine-server
-  ports:
-  - protocol: TCP
-    port: 80
-    targetPort: 3000
-  type: LoadBalancer

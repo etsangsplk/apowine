@@ -1,0 +1,19 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: apowine-producerbeer
+  namespace: apowine
+spec:
+  template:
+    metadata:
+      name: apowine-producerbeer
+    spec:
+      containers:
+      - name: apowine-producerbeer
+        image: aporeto/apowine-producerbeer:latest
+        env:
+           - name: APOWINE_SERVERURI
+             value: http://server:3000/beer
+           - name: APOWINE_LOGLEVEL
+             value: debug
+      restartPolicy: Never

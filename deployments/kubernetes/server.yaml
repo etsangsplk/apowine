@@ -20,6 +20,8 @@ spec:
                value: mongodb:27017
              - name: APOWINE_SERVERPORT
                value: :3000
+             - name: APOWINE_MAKENEWCONNECTION
+               value: "true"
           name: apowine-server
 ---
 kind: Service

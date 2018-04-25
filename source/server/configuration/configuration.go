@@ -13,6 +13,7 @@ import (
 type Configuration struct {
 	ServerPort string
 
+	MakeNewConnection   bool
 	MongoDatabaseName   string
 	MongoCollectionName string
 	MongoURL            string
@@ -34,6 +35,7 @@ func LoadConfiguration() (*Configuration, error) {
 	flag.String("LogLevel", "", "Log level. Default to info (trace//debug//info//warn//error//fatal)")
 	flag.String("LogFormat", "", "Log Format. Default to human")
 
+	flag.String("MakeNewConnection", "", "To create new session every request [default: false]")
 	flag.String("MongoDatabaseName", "", "Name of the database [default: drinksdb]")
 	flag.String("MongoCollectionName", "", "Name of the collection in database [default: drinkscollection]")
 	flag.String("MongoURL", "", "URI to connect to DB [default: 127.0.0.1:27017]")
@@ -44,6 +46,7 @@ func LoadConfiguration() (*Configuration, error) {
 	viper.SetDefault("LogLevel", "debug")
 	viper.SetDefault("LogFormat", "human")
 
+	viper.SetDefault("MakeNewConnection", false)
 	viper.SetDefault("MongoDatabaseName", "drinksdb")
 	viper.SetDefault("MongoCollectionName", "drinkscollection")
 	viper.SetDefault("MongoURL", "127.0.0.1:27017")

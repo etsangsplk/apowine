@@ -18,7 +18,7 @@ spec:
     spec:
       containers:
           - name: client
-            image: aporeto/apowine-client
+            image: aporeto/apowine-clientcurl:latest
             env:
             - name: URI
               value: "server:3000/beer/random"
@@ -43,7 +43,7 @@ spec:
     spec:
       containers:
           - name: client
-            image: aporeto/apowine-client
+            image: aporeto/apowine-clientcurl:latest
             env:
             - name: URI
               value: "server:3000/wine/random"

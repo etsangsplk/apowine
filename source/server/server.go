@@ -12,21 +12,37 @@ import (
 
 // Server holds database object
 type Server struct {
-	mongodb *mongodb.MongoDB
+	mongodb       *mongodb.MongoDB
+	newConnection bool
+	host          []string
+	database      string
+	collection    string
 }
 
 // NewServer creates a new server handler
-func NewServer(mongo *mongodb.MongoDB) *Server {
+func NewServer(mongo *mongodb.MongoDB, isNewConnection bool, host []string, database string, collection string) *Server {
 	zap.L().Info("Creating a new server handler")
 
 	return &Server{
-		mongodb: mongo,
+		mongodb:       mongo,
+		newConnection: isNewConnection,
+		host:          host,
+		database:      database,
+		collection:    collection,
 	}
 }
 
 // AllDrinks returns drinks based on type in JSON format
 func (s *Server) AllDrinks(w http.ResponseWriter, r *http.Request) {
 	defer r.Body.Close()
+
+	if s.newConnection {
+		mongodb, err := mongodb.NewMongoSession(s.host, "", "", s.database, s.collection)
+		if err != nil {
+			zap.L().Error("error creating a session", zap.Error(err))
+		}
+		s.mongodb = mongodb
+	}
 
 	//Extracting the endpoints from URL
 	drinkName := strings.SplitAfter(r.URL.RequestURI(), "/")
@@ -45,6 +61,14 @@ func (s *Server) AllDrinks(w http.ResponseWriter, r *http.Request) {
 // RandomDrink returns random drink based on type in JSON format
 func (s *Server) RandomDrink(w http.ResponseWriter, r *http.Request) {
 	defer r.Body.Close()
+
+	if s.newConnection {
+		mongodb, err := mongodb.NewMongoSession(s.host, "", "", s.database, s.collection)
+		if err != nil {
+			zap.L().Error("error creating a session", zap.Error(err))
+		}
+		s.mongodb = mongodb
+	}
 
 	endpoint := strings.SplitAfter(r.URL.RequestURI(), "/")
 	drinkName := strings.Replace(endpoint[1], "/", "", -1)
@@ -65,6 +89,14 @@ func (s *Server) RandomDrink(w http.ResponseWriter, r *http.Request) {
 func (s *Server) FindDrinkEndpoint(w http.ResponseWriter, r *http.Request) {
 	defer r.Body.Close()
 
+	if s.newConnection {
+		mongodb, err := mongodb.NewMongoSession(s.host, "", "", s.database, s.collection)
+		if err != nil {
+			zap.L().Error("error creating a session", zap.Error(err))
+		}
+		s.mongodb = mongodb
+	}
+
 	endpoint := strings.SplitAfter(r.URL.RequestURI(), "/")
 	drinkName := strings.Replace(endpoint[1], "/", "", -1)
 	params := mux.Vars(r)
@@ -84,6 +116,14 @@ func (s *Server) FindDrinkEndpoint(w http.ResponseWriter, r *http.Request) {
 func (s *Server) CreateDrinkEndPoint(w http.ResponseWriter, r *http.Request) {
 	defer r.Body.Close()
 
+	if s.newConnection {
+		mongodb, err := mongodb.NewMongoSession(s.host, "", "", s.database, s.collection)
+		if err != nil {
+			zap.L().Error("error creating a session", zap.Error(err))
+		}
+		s.mongodb = mongodb
+	}
+
 	drinkName := strings.SplitAfter(r.URL.RequestURI(), "/")
 	decoder := json.NewDecoder(r.Body)
 	err := s.mongodb.Insert(decoder, drinkName[1])
@@ -95,6 +135,14 @@ func (s *Server) CreateDrinkEndPoint(w http.ResponseWriter, r *http.Request) {
 // UpdateDrinkEndPoint updates an existing drink property given its ID
 func (s *Server) UpdateDrinkEndPoint(w http.ResponseWriter, r *http.Request) {
 	defer r.Body.Close()
+
+	if s.newConnection {
+		mongodb, err := mongodb.NewMongoSession(s.host, "", "", s.database, s.collection)
+		if err != nil {
+			zap.L().Error("error creating a session", zap.Error(err))
+		}
+		s.mongodb = mongodb
+	}
 
 	drinkName := strings.SplitAfter(r.URL.RequestURI(), "/")
 	decoder := json.NewDecoder(r.Body)
@@ -108,6 +156,14 @@ func (s *Server) UpdateDrinkEndPoint(w http.ResponseWriter, r *http.Request) {
 // DeleteDrinkEndPoint deletes a drink given ID and its type
 func (s *Server) DeleteDrinkEndPoint(w http.ResponseWriter, r *http.Request) {
 	defer r.Body.Close()
+
+	if s.newConnection {
+		mongodb, err := mongodb.NewMongoSession(s.host, "", "", s.database, s.collection)
+		if err != nil {
+			zap.L().Error("error creating a session", zap.Error(err))
+		}
+		s.mongodb = mongodb
+	}
 
 	params := mux.Vars(r)
 

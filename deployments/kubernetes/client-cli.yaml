@@ -6,7 +6,7 @@ metadata:
   labels:
     role: beer-getter
 spec:
-  replicas: 1
+  replicas: 3
   selector:
     matchLabels:
       role: beer-getter
@@ -31,7 +31,7 @@ metadata:
   labels:
     role: wine-getter
 spec:
-  replicas: 1
+  replicas: 3
   selector:
     matchLabels:
       role: wine-getter

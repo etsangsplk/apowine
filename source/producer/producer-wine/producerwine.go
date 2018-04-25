@@ -3,32 +3,29 @@ package producerwine
 import (
 	"bytes"
 	"encoding/json"
+	"io/ioutil"
 	"net/http"
+	"strings"
+
+	"go.uber.org/zap"
 )
 
 // PushWinesToDB pushes predefined wines to database
 func PushWinesToDB(serverURI string) error {
+	zap.L().Info("Reading wines from file")
+	zap.L().Info("ServerURI", zap.String("URI", serverURI))
 
-	wineNames := []string{
-		"Bin 707 Cabernet Sauvignon",
-		"Caymus Vineyards Cabernet Sauvignon",
-		"Dom Pérignon",
-		"Échezeaux Grand Cru",
-		"Gaja Barbaresco DOCG",
-		"Bokkereyder Framboos Noyaux",
-		"Hill of Grace Shiraz (Henschke)",
-		"Haut-Brion (Château)",
-		"Insignia (Joseph Phelps Vineyards)",
-		"Klein Constantia Vin de Constance",
-		"Lafite Rothschild (Château)",
-		"Dr. L Riesling (Loosen Bros)",
-		"Margaux (Château)",
-		"Ornellaia Bolgheri Superiore",
-		"Palmer (Château)",
-		"Quinta do Noval ‘Nacional’ Vintage Port",
+	data, err := ioutil.ReadFile("/apowine/producerwine.txt")
+	if err != nil {
+		return err
 	}
 
-	for _, wineName := range wineNames {
+	strData := string(data)
+
+	wineNames := strings.SplitAfter(strData, ",")
+
+	for _, wineNameWithSymbol := range wineNames {
+		wineName := strings.Replace(wineNameWithSymbol, ",", "", -1)
 		var values map[string]string
 		values = map[string]string{"winename": wineName}
 		jsonValue, _ := json.Marshal(values)

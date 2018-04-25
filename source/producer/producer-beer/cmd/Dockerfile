@@ -8,4 +8,6 @@ RUN mkdir -p /apowine
 
 ADD producerbeer /apowine/producerbeer
 
+ADD producerbeer.txt /apowine/producerbeer.txt
+
 ENTRYPOINT ["/apowine/producerbeer"]

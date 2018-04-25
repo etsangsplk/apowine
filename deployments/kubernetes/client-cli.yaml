@@ -4,17 +4,21 @@ metadata:
   name: apowine-beer-getter
   namespace: apowine
   labels:
-    role: beer-getter
+    role: client
+    drink: beer
+    app: beer-getter
 spec:
   replicas: 3
   selector:
     matchLabels:
-      role: beer-getter
+      app: beer-getter
   template:
     metadata:
-      name: beer-getter
+      name: apowine-beer-getter
       labels:
-        role: beer-getter
+        role: client
+        drink: beer
+        app: beer-getter
     spec:
       containers:
           - name: client
@@ -29,17 +33,21 @@ metadata:
   name: apowine-wine-getter
   namespace: apowine
   labels:
-    role: wine-getter
+    role: client
+    drink: wine
+    app: wine-getter
 spec:
   replicas: 3
   selector:
     matchLabels:
-      role: wine-getter
+      app: wine-getter
   template:
     metadata:
-      name: wine-getter
+      name: apowine-wine-getter
       labels:
-        role: wine-getter
+        role: client
+        drink: wine
+        app: wine-getter
     spec:
       containers:
           - name: client

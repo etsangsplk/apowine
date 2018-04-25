@@ -1,5 +1,9 @@
 source/producer/producer-beer/cmd/producerbeer
+source/producer/producer-beer/cmd/cmd
 source/producer/producer-wine/cmd/producerwine
+source/producer/producer-wine/cmd/cmd
 source/server/cmd/server
+source/server/cmd/cmd
 source/frontend-ui/client/cmd/frontend
+source/frontend-ui/client/cmd/cmd
 source/frontend-ui/client/cmd/docker/frontend

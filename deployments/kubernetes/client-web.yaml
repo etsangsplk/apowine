@@ -3,15 +3,22 @@ kind: ReplicaSet
 metadata:
   creationTimestamp: null
   labels:
+    role: client
     app: apowine-client
+    type: ui
   name: apowine-client
   namespace: apowine
 spec:
+  selector:
+    matchLabels:
+      app: apowine-client
   template:
     metadata:
       creationTimestamp: null
       labels:
+        role: client
         app: apowine-client
+        type: ui
     spec:
       containers:
         - image: aporeto/apowine-client:latest
@@ -33,7 +40,9 @@ metadata:
   namespace: apowine
 spec:
   selector:
-    app: apowine-client
+      role: client
+      app: apowine-client
+      type: ui
   ports:
     - protocol: TCP
       port: 3005
@@ -46,7 +55,9 @@ metadata:
   namespace: apowine
 spec:
   selector:
-    app: apowine-client
+      role: client
+      app: apowine-client
+      type: ui
   ports:
   - protocol: TCP
     port: 80

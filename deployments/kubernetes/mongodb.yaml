@@ -34,8 +34,6 @@ metadata:
 spec:
   selector:
       app: apowine-mongodb
-      role: database
-      app: mongodb
   ports:
     - protocol: TCP
       name: port2

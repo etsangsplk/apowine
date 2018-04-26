@@ -2,10 +2,12 @@ package server
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"strings"
 
 	"github.com/aporeto-inc/apowine/source/mongodb-lib"
+	"github.com/aporeto-inc/apowine/source/server/internal/auth"
 	"github.com/gorilla/mux"
 	"go.uber.org/zap"
 )
@@ -17,10 +19,11 @@ type Server struct {
 	host          []string
 	database      string
 	collection    string
+	auth          *auth.Auth
 }
 
 // NewServer creates a new server handler
-func NewServer(mongo *mongodb.MongoDB, isNewConnection bool, host []string, database string, collection string) *Server {
+func NewServer(mongo *mongodb.MongoDB, isNewConnection bool, host []string, database string, collection string, auth *auth.Auth) *Server {
 	zap.L().Info("Creating a new server handler")
 
 	return &Server{
@@ -29,12 +32,32 @@ func NewServer(mongo *mongodb.MongoDB, isNewConnection bool, host []string, data
 		host:          host,
 		database:      database,
 		collection:    collection,
+		auth:          auth,
 	}
 }
 
 // AllDrinks returns drinks based on type in JSON format
 func (s *Server) AllDrinks(w http.ResponseWriter, r *http.Request) {
 	defer r.Body.Close()
+
+	cookie := s.auth.GetCookie()
+
+	session, _ := cookie.GetCookieStore().Get(r, "sessions")
+
+	// Check if user is authenticated
+	if auth, ok := session.Values["authenticated"].(bool); !ok || !auth {
+
+		if e := session.Save(r, w); e != nil {
+			zap.L().Error("Error in saving the session in GetScenarioLog", zap.Error(e))
+		}
+
+		session.Values["redirectURL"] = r.URL.String()
+		if err := session.Save(r, w); err != nil {
+			zap.Error(err)
+		}
+		http.Redirect(w, r, "/login", http.StatusTemporaryRedirect)
+		return
+	}
 
 	if s.newConnection {
 		mongodb, err := mongodb.NewMongoSession(s.host, "", "", s.database, s.collection)
@@ -61,6 +84,25 @@ func (s *Server) AllDrinks(w http.ResponseWriter, r *http.Request) {
 // RandomDrink returns random drink based on type in JSON format
 func (s *Server) RandomDrink(w http.ResponseWriter, r *http.Request) {
 	defer r.Body.Close()
+
+	cookie := s.auth.GetCookie()
+
+	session, _ := cookie.GetCookieStore().Get(r, "sessions")
+	fmt.Println(session.Values["authenticated"])
+	// Check if user is authenticated
+	if auth, ok := session.Values["authenticated"].(bool); !ok || !auth {
+
+		if e := session.Save(r, w); e != nil {
+			zap.L().Error("Error in saving the session in GetScenarioLog", zap.Error(e))
+		}
+
+		session.Values["redirectURL"] = r.URL.String()
+		if err := session.Save(r, w); err != nil {
+			zap.Error(err)
+		}
+		http.Redirect(w, r, "/login", http.StatusTemporaryRedirect)
+		return
+	}
 
 	if s.newConnection {
 		mongodb, err := mongodb.NewMongoSession(s.host, "", "", s.database, s.collection)

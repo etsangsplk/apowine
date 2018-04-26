@@ -1,0 +1,11 @@
+name: client-apispec
+description: Client API Service
+endpoints:
+- URI: "/drink/*"
+  scopes:
+  - scope:admin
+  - data:organization=aporeto.com
+  methods:
+  - GET
+associatedTags:
+- spec:api=client-api

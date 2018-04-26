@@ -8,7 +8,9 @@ import (
 
 	"github.com/aporeto-inc/apowine/source/mongodb-lib"
 	"github.com/aporeto-inc/apowine/source/server/internal/auth"
+	gcontext "github.com/gorilla/context"
 	"github.com/gorilla/mux"
+	"github.com/gorilla/sessions"
 	"go.uber.org/zap"
 )
 
@@ -20,6 +22,7 @@ type Server struct {
 	database      string
 	collection    string
 	auth          *auth.Auth
+	session       *sessions.Session
 }
 
 // NewServer creates a new server handler
@@ -84,22 +87,30 @@ func (s *Server) AllDrinks(w http.ResponseWriter, r *http.Request) {
 // RandomDrink returns random drink based on type in JSON format
 func (s *Server) RandomDrink(w http.ResponseWriter, r *http.Request) {
 	defer r.Body.Close()
-
+	var newSession *sessions.Session
 	cookie := s.auth.GetCookie()
+	request := s.auth.GetRequest()
 
-	session, _ := cookie.GetCookieStore().Get(r, "sessions")
-	fmt.Println(session.Values["authenticated"])
+	if gcontext.Get(request, "req") != nil {
+		requestSession := gcontext.Get(request, "req").(*http.Request)
+		s.session, _ = cookie.GetCookieStore().Get(requestSession, "sessions")
+	} else {
+		s.session, _ = cookie.GetCookieStore().Get(r, "sessions")
+	}
+
 	// Check if user is authenticated
-	if auth, ok := session.Values["authenticated"].(bool); !ok || !auth {
-
-		if e := session.Save(r, w); e != nil {
-			zap.L().Error("Error in saving the session in GetScenarioLog", zap.Error(e))
+	if auth, ok := s.session.Values["authenticated"].(bool); !ok || !auth {
+		fmt.Println("ComingHEre")
+		s.session = newSession
+		if e := s.session.Save(r, w); e != nil {
+			zap.L().Error("Error in saving the session ", zap.Error(e))
 		}
 
-		session.Values["redirectURL"] = r.URL.String()
-		if err := session.Save(r, w); err != nil {
+		s.session.Values["redirectURL"] = r.URL.String()
+		if err := s.session.Save(r, w); err != nil {
 			zap.Error(err)
 		}
+
 		http.Redirect(w, r, "/login", http.StatusTemporaryRedirect)
 		return
 	}
@@ -119,7 +130,6 @@ func (s *Server) RandomDrink(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		zap.L().Error("error reading data from database", zap.Error(err))
 	}
-
 	err = json.NewEncoder(w).Encode(data)
 	if err != nil {
 		zap.L().Error("error in json output", zap.Error(err))

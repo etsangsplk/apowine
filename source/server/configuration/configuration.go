@@ -43,7 +43,7 @@ func LoadConfiguration() (*Configuration, error) {
 
 	// Setting up default configuration
 	viper.SetDefault("ServerPort", ":3000")
-	viper.SetDefault("LogLevel", "debug")
+	viper.SetDefault("LogLevel", "info")
 	viper.SetDefault("LogFormat", "human")
 
 	viper.SetDefault("MakeNewConnection", false)

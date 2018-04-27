@@ -87,7 +87,7 @@ func (s *Server) AllDrinks(w http.ResponseWriter, r *http.Request) {
 // RandomDrink returns random drink based on type in JSON format
 func (s *Server) RandomDrink(w http.ResponseWriter, r *http.Request) {
 	defer r.Body.Close()
-	var newSession *sessions.Session
+
 	cookie := s.auth.GetCookie()
 	request := s.auth.GetRequest()
 
@@ -100,8 +100,8 @@ func (s *Server) RandomDrink(w http.ResponseWriter, r *http.Request) {
 
 	// Check if user is authenticated
 	if auth, ok := s.session.Values["authenticated"].(bool); !ok || !auth {
-		fmt.Println("ComingHEre")
-		s.session = newSession
+		fmt.Println("AUTH", auth)
+		fmt.Println("BOOL", ok)
 		if e := s.session.Save(r, w); e != nil {
 			zap.L().Error("Error in saving the session ", zap.Error(e))
 		}
@@ -134,6 +134,7 @@ func (s *Server) RandomDrink(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		zap.L().Error("error in json output", zap.Error(err))
 	}
+
 }
 
 // FindDrinkEndpoint finds If a drink is available in the database given ID in the URL

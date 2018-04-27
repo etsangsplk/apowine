@@ -42,12 +42,7 @@ git clone https://github.com/aporeto-inc/apowine.git
 cd apowine/deployments
 ```
 
-2) Create the `namespace` from this file:
-```
-kubectl create -f ns.yaml
-```
-
-3) Deploy all the other components that uses this namespace
+2) Deploy all the other components that uses this namespace
 ```
 kubectl create -f .
 ```

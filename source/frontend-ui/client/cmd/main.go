@@ -52,7 +52,8 @@ func main() {
 
 	zap.L().Debug("Config used", zap.Any("Config", cfg))
 
-	r.HandleFunc("/", client.GenerateClientPage)
+	r.HandleFunc("/", client.GenerateLoginPage)
+	r.PathPrefix("/static/").Handler(http.StripPrefix("/static/", http.FileServer(http.Dir("/Users/sibi/apomux/workspace/code/go/src/github.com/aporeto-inc/apowine/source/frontend-ui/templates"))))
 
 	clientHandler := client.NewClient(cfg.ServerAddress)
 

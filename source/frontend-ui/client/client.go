@@ -3,11 +3,11 @@ package client
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"html/template"
 	"io/ioutil"
 	"net/http"
 
-	"github.com/aporeto-inc/apowine/source/frontend-ui/templates"
 	"github.com/aporeto-inc/apowine/source/mongodb-lib"
 )
 
@@ -20,11 +20,11 @@ type Client struct {
 }
 
 // GenerateClientPage generates HTML to manipulate data
-func GenerateClientPage(w http.ResponseWriter, r *http.Request) {
-
-	t, err := template.New("template").Parse(templates.UITemplate)
+func GenerateLoginPage(w http.ResponseWriter, r *http.Request) {
+	fmt.Println("LOGIN PAGE")
+	t, err := template.New("homepage.html").ParseFiles("/Users/sibi/apomux/workspace/code/go/src/github.com/aporeto-inc/apowine/source/frontend-ui/templates/homepage.html")
 	if err != nil {
-		http.Error(w, err.Error(), 2)
+		fmt.Println(err)
 	}
 
 	err = t.Execute(w, nil)
@@ -32,7 +32,23 @@ func GenerateClientPage(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), 3)
 	}
 
-	w.Header().Set("Content-Type", "text/html")
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+}
+
+// GenerateClientPage generates HTML to manipulate data
+func GenerateClientPage(w http.ResponseWriter, r *http.Request) {
+
+	// t, err := template.New("template").Parse(templates.UITemplate)
+	// if err != nil {
+	// 	http.Error(w, err.Error(), 2)
+	// }
+	//
+	// err = t.Execute(w, nil)
+	// if err != nil {
+	// 	http.Error(w, err.Error(), 3)
+	// }
+	//
+	// w.Header().Set("Content-Type", "text/html")
 }
 
 // NewClient creates new client handler
@@ -53,7 +69,8 @@ func (c *Client) GenerateDrinkManipulator(w http.ResponseWriter, r *http.Request
 		operation := r.URL.Query().Get("operationType")
 		err := c.manipulateData(operation, r, &c.beer, mongodb.BEER)
 		if err != nil {
-			http.Error(w, err.Error(), 2)
+			fmt.Println(err)
+			//http.Error(w, err.Error(), 2)
 		}
 		w.Header().Set("Content-Type", "application/json")
 		err = json.NewEncoder(w).Encode(c.beer)
@@ -65,7 +82,7 @@ func (c *Client) GenerateDrinkManipulator(w http.ResponseWriter, r *http.Request
 		operation := r.URL.Query().Get("operationType")
 		err := c.manipulateData(operation, r, &c.wine, mongodb.WINE)
 		if err != nil {
-			http.Error(w, err.Error(), 2)
+			fmt.Println(err)
 		}
 		w.Header().Set("Content-Type", "application/json")
 		err = json.NewEncoder(w).Encode(c.wine)

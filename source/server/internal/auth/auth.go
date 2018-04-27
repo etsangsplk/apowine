@@ -53,7 +53,6 @@ func (a *Auth) GetRequest() *http.Request {
 
 func (a *Auth) Logout(w http.ResponseWriter, r *http.Request) {
 
-	fmt.Println(gcontext.Get(r, "req"))
 	store, err := a.store.GetCookieStore().Get(gcontext.Get(a.request, "req").(*http.Request), "sessions")
 
 	if err != nil {
@@ -66,7 +65,7 @@ func (a *Auth) Logout(w http.ResponseWriter, r *http.Request) {
 		a.store = &Cookie{
 			cookieStore: sessions.NewCookieStore(securecookie.GenerateRandomKey(5)),
 		}
-		a.request = &http.Request{}
+		gcontext.Set(a.request, "req", &http.Request{})
 	}
 	http.Redirect(w, r, "/login", http.StatusTemporaryRedirect)
 }
@@ -98,7 +97,7 @@ func (a *Auth) GithubCallbackHandler(w http.ResponseWriter, r *http.Request) {
 	oauthClient := OAuthConf.Client(context.TODO(), token)
 	client := github.NewClient(oauthClient)
 	user, _, err := client.Users.Get(context.TODO(), "")
-
+	fmt.Println(user)
 	if err != nil {
 		zap.L().Warn("client.Users.Get() failed", zap.Error(err))
 		http.Redirect(w, r, "/", http.StatusTemporaryRedirect)

@@ -8,7 +8,6 @@ import (
 
 	"github.com/aporeto-inc/apowine/source/mongodb-lib"
 	"github.com/aporeto-inc/apowine/source/server/internal/auth"
-	gcontext "github.com/gorilla/context"
 	"github.com/gorilla/mux"
 	"github.com/gorilla/sessions"
 	"go.uber.org/zap"
@@ -43,31 +42,10 @@ func NewServer(mongo *mongodb.MongoDB, isNewConnection bool, host []string, data
 func (s *Server) AllDrinks(w http.ResponseWriter, r *http.Request) {
 	defer r.Body.Close()
 
-	cookie := s.auth.GetCookie()
-
-	session, _ := cookie.GetCookieStore().Get(r, "sessions")
-
-	// Check if user is authenticated
-	if auth, ok := session.Values["authenticated"].(bool); !ok || !auth {
-
-		if e := session.Save(r, w); e != nil {
-			zap.L().Error("Error in saving the session in GetScenarioLog", zap.Error(e))
-		}
-
-		session.Values["redirectURL"] = r.URL.String()
-		if err := session.Save(r, w); err != nil {
-			zap.Error(err)
-		}
-		http.Redirect(w, r, "/login", http.StatusTemporaryRedirect)
-		return
-	}
+	s.checkIfUserAuthenticated(w, r)
 
 	if s.newConnection {
-		mongodb, err := mongodb.NewMongoSession(s.host, "", "", s.database, s.collection)
-		if err != nil {
-			zap.L().Error("error creating a session", zap.Error(err))
-		}
-		s.mongodb = mongodb
+		s.createDatabaseSession()
 	}
 
 	//Extracting the endpoints from URL
@@ -84,29 +62,19 @@ func (s *Server) AllDrinks(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// RandomDrink returns random drink based on type in JSON format
-func (s *Server) RandomDrink(w http.ResponseWriter, r *http.Request) {
-	defer r.Body.Close()
-
+func (s *Server) checkIfUserAuthenticated(w http.ResponseWriter, r *http.Request) {
 	cookie := s.auth.GetCookie()
-	request := s.auth.GetRequest()
 
-	if gcontext.Get(request, "req") != nil {
-		requestSession := gcontext.Get(request, "req").(*http.Request)
-		s.session, _ = cookie.GetCookieStore().Get(requestSession, "sessions")
-	} else {
-		s.session, _ = cookie.GetCookieStore().Get(r, "sessions")
-	}
+	s.session, _ = cookie.GetCookieStore().Get(r, "sessions")
 
 	// Check if user is authenticated
 	if auth, ok := s.session.Values["authenticated"].(bool); !ok || !auth {
-		fmt.Println("AUTH", auth)
-		fmt.Println("BOOL", ok)
+
 		if e := s.session.Save(r, w); e != nil {
 			zap.L().Error("Error in saving the session ", zap.Error(e))
 		}
-
 		s.session.Values["redirectURL"] = r.URL.String()
+		fmt.Println("URL", r.URL.String())
 		if err := s.session.Save(r, w); err != nil {
 			zap.Error(err)
 		}
@@ -114,13 +82,16 @@ func (s *Server) RandomDrink(w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, "/login", http.StatusTemporaryRedirect)
 		return
 	}
+}
+
+// RandomDrink returns random drink based on type in JSON format
+func (s *Server) RandomDrink(w http.ResponseWriter, r *http.Request) {
+	defer r.Body.Close()
+
+	s.checkIfUserAuthenticated(w, r)
 
 	if s.newConnection {
-		mongodb, err := mongodb.NewMongoSession(s.host, "", "", s.database, s.collection)
-		if err != nil {
-			zap.L().Error("error creating a session", zap.Error(err))
-		}
-		s.mongodb = mongodb
+		s.createDatabaseSession()
 	}
 
 	endpoint := strings.SplitAfter(r.URL.RequestURI(), "/")
@@ -136,18 +107,23 @@ func (s *Server) RandomDrink(w http.ResponseWriter, r *http.Request) {
 	}
 
 }
+func (s *Server) createDatabaseSession() {
+	mongodb, err := mongodb.NewMongoSession(s.host, "", "", s.database, s.collection)
+	if err != nil {
+		zap.L().Error("error creating a session", zap.Error(err))
+	}
+	s.mongodb = mongodb
+}
 
 // FindDrinkEndpoint finds If a drink is available in the database given ID in the URL
 // Writes JSON
 func (s *Server) FindDrinkEndpoint(w http.ResponseWriter, r *http.Request) {
 	defer r.Body.Close()
 
+	s.checkIfUserAuthenticated(w, r)
+
 	if s.newConnection {
-		mongodb, err := mongodb.NewMongoSession(s.host, "", "", s.database, s.collection)
-		if err != nil {
-			zap.L().Error("error creating a session", zap.Error(err))
-		}
-		s.mongodb = mongodb
+		s.createDatabaseSession()
 	}
 
 	endpoint := strings.SplitAfter(r.URL.RequestURI(), "/")
@@ -169,12 +145,10 @@ func (s *Server) FindDrinkEndpoint(w http.ResponseWriter, r *http.Request) {
 func (s *Server) CreateDrinkEndPoint(w http.ResponseWriter, r *http.Request) {
 	defer r.Body.Close()
 
+	s.checkIfUserAuthenticated(w, r)
+
 	if s.newConnection {
-		mongodb, err := mongodb.NewMongoSession(s.host, "", "", s.database, s.collection)
-		if err != nil {
-			zap.L().Error("error creating a session", zap.Error(err))
-		}
-		s.mongodb = mongodb
+		s.createDatabaseSession()
 	}
 
 	drinkName := strings.SplitAfter(r.URL.RequestURI(), "/")
@@ -189,12 +163,10 @@ func (s *Server) CreateDrinkEndPoint(w http.ResponseWriter, r *http.Request) {
 func (s *Server) UpdateDrinkEndPoint(w http.ResponseWriter, r *http.Request) {
 	defer r.Body.Close()
 
+	s.checkIfUserAuthenticated(w, r)
+
 	if s.newConnection {
-		mongodb, err := mongodb.NewMongoSession(s.host, "", "", s.database, s.collection)
-		if err != nil {
-			zap.L().Error("error creating a session", zap.Error(err))
-		}
-		s.mongodb = mongodb
+		s.createDatabaseSession()
 	}
 
 	drinkName := strings.SplitAfter(r.URL.RequestURI(), "/")
@@ -210,12 +182,10 @@ func (s *Server) UpdateDrinkEndPoint(w http.ResponseWriter, r *http.Request) {
 func (s *Server) DeleteDrinkEndPoint(w http.ResponseWriter, r *http.Request) {
 	defer r.Body.Close()
 
+	s.checkIfUserAuthenticated(w, r)
+
 	if s.newConnection {
-		mongodb, err := mongodb.NewMongoSession(s.host, "", "", s.database, s.collection)
-		if err != nil {
-			zap.L().Error("error creating a session", zap.Error(err))
-		}
-		s.mongodb = mongodb
+		s.createDatabaseSession()
 	}
 
 	params := mux.Vars(r)

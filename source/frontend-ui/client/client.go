@@ -24,12 +24,12 @@ func GenerateClientPage(w http.ResponseWriter, r *http.Request) {
 
 	t, err := template.New("template").Parse(templates.UITemplate)
 	if err != nil {
-		http.Error(w, err.Error(), 2)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
 
 	err = t.Execute(w, nil)
 	if err != nil {
-		http.Error(w, err.Error(), 3)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
 
 	w.Header().Set("Content-Type", "text/html")
@@ -53,24 +53,24 @@ func (c *Client) GenerateDrinkManipulator(w http.ResponseWriter, r *http.Request
 		operation := r.URL.Query().Get("operationType")
 		err := c.manipulateData(operation, r, &c.beer, mongodb.BEER)
 		if err != nil {
-			http.Error(w, err.Error(), 2)
+			http.Error(w, err.Error(), http.StatusNotFound)
 		}
 		w.Header().Set("Content-Type", "application/json")
 		err = json.NewEncoder(w).Encode(c.beer)
 		if err != nil {
-			http.Error(w, err.Error(), 2)
+			http.Error(w, err.Error(), http.StatusInternalServerError)
 		}
 	} else if c.drinkName == mongodb.WINE {
 		c.drinkName = mongodb.WINE
 		operation := r.URL.Query().Get("operationType")
 		err := c.manipulateData(operation, r, &c.wine, mongodb.WINE)
 		if err != nil {
-			http.Error(w, err.Error(), 2)
+			http.Error(w, err.Error(), http.StatusNotFound)
 		}
 		w.Header().Set("Content-Type", "application/json")
 		err = json.NewEncoder(w).Encode(c.wine)
 		if err != nil {
-			http.Error(w, err.Error(), 3)
+			http.Error(w, err.Error(), http.StatusInternalServerError)
 		}
 	}
 }
@@ -173,12 +173,12 @@ func (c *Client) GenerateRandomDrinkManipulator(w http.ResponseWriter, r *http.R
 	}
 	data, err := ioutil.ReadAll(response.Body)
 	if err != nil {
-		http.Error(w, err.Error(), 3)
+		http.Error(w, err.Error(), http.StatusUnprocessableEntity)
 	}
 	reader := bytes.NewReader(data)
 	err = json.NewDecoder(reader).Decode(&beer)
 	if err != nil {
-		http.Error(w, err.Error(), 4)
+		http.Error(w, err.Error(), http.StatusUnprocessableEntity)
 	}
 
 	json.NewDecoder(reader).Decode(&wine)
@@ -186,12 +186,12 @@ func (c *Client) GenerateRandomDrinkManipulator(w http.ResponseWriter, r *http.R
 	if beer.BeerName != "" {
 		err = json.NewEncoder(w).Encode(beer)
 		if err != nil {
-			http.Error(w, err.Error(), 5)
+			http.Error(w, err.Error(), http.StatusInternalServerError)
 		}
 	} else if wine.WineName != "" {
 		err = json.NewEncoder(w).Encode(wine)
 		if err != nil {
-			http.Error(w, err.Error(), 6)
+			http.Error(w, err.Error(), http.StatusInternalServerError)
 		}
 	}
 }

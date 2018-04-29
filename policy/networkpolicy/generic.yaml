@@ -1,0 +1,8 @@
+---
+name: Win Access Policy
+object:
+- - service=mongodb
+- - service=apowine 
+subject:
+- - "$namespace=/apomux"
+action: "Allow"

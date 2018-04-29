@@ -1,0 +1,20 @@
+name: drinks
+description: Client API Service
+endpoints:
+- URI: "/drink"
+  scopes:
+  - scope:default 
+  public: true
+  methods: [ GET, POST, PUT, DELETE]
+- URI: "/random"
+  scopes:
+  - scope:default 
+  public: true
+  methods: [ GET, POST, PUT, DELETE]
+- URI: "/"
+  scopes:
+  - scope:default 
+  public: true 
+  methods: [ GET, POST, PUT, DELETE]
+associatedTags:
+- spec:api=client

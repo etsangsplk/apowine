@@ -1,0 +1,7 @@
+---
+assignedScopes:
+- scope:default
+name: default 
+subject:
+- - "$namespace=/apomux"
+  - "$identity=processingunit"

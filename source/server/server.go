@@ -7,7 +7,6 @@ import (
 	"strings"
 
 	"github.com/aporeto-inc/apowine/source/mongodb-lib"
-	"github.com/aporeto-inc/apowine/source/server/internal/auth"
 	"github.com/gorilla/mux"
 	"github.com/gorilla/sessions"
 	"go.uber.org/zap"
@@ -20,12 +19,11 @@ type Server struct {
 	host          []string
 	database      string
 	collection    string
-	auth          *auth.Auth
 	session       *sessions.Session
 }
 
 // NewServer creates a new server handler
-func NewServer(mongo *mongodb.MongoDB, isNewConnection bool, host []string, database string, collection string, auth *auth.Auth) *Server {
+func NewServer(mongo *mongodb.MongoDB, isNewConnection bool, host []string, database string, collection string) *Server {
 	zap.L().Info("Creating a new server handler")
 
 	return &Server{
@@ -34,7 +32,6 @@ func NewServer(mongo *mongodb.MongoDB, isNewConnection bool, host []string, data
 		host:          host,
 		database:      database,
 		collection:    collection,
-		auth:          auth,
 	}
 }
 
@@ -62,33 +59,36 @@ func (s *Server) AllDrinks(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (s *Server) checkIfUserAuthenticated(w http.ResponseWriter, r *http.Request) {
-	cookie := s.auth.GetCookie()
-
-	s.session, _ = cookie.GetCookieStore().Get(r, "sessions")
-
-	// Check if user is authenticated
-	if auth, ok := s.session.Values["authenticated"].(bool); !ok || !auth {
-
-		if e := s.session.Save(r, w); e != nil {
-			zap.L().Error("Error in saving the session ", zap.Error(e))
-		}
-		s.session.Values["redirectURL"] = r.URL.String()
-		fmt.Println("URL", r.URL.String())
-		if err := s.session.Save(r, w); err != nil {
-			zap.Error(err)
-		}
-
-		http.Redirect(w, r, "/login", http.StatusTemporaryRedirect)
-		return
-	}
+func (s *Server) checkIfUserAuthenticated(w http.ResponseWriter, r *http.Request) bool {
+	// cookie := s.auth.GetCookie()
+	//
+	// s.session, _ = cookie.GetCookieStore().Get(r, "sessions")
+	//
+	// // Check if user is authenticated
+	// if auth, ok := s.session.Values["authenticated"].(bool); !ok || !auth {
+	//
+	// 	if e := s.session.Save(r, w); e != nil {
+	// 		zap.L().Error("Error in saving the session ", zap.Error(e))
+	// 	}
+	// 	s.session.Values["redirectURL"] = r.URL.String()
+	// 	fmt.Println("URL", r.URL.String())
+	// 	if err := s.session.Save(r, w); err != nil {
+	// 		zap.Error(err)
+	// 	}
+	//
+	// 	http.Redirect(w, r, "/login", http.StatusTemporaryRedirect)
+	// 	return true
+	// }
+	return false
 }
 
 // RandomDrink returns random drink based on type in JSON format
 func (s *Server) RandomDrink(w http.ResponseWriter, r *http.Request) {
 	defer r.Body.Close()
 
-	s.checkIfUserAuthenticated(w, r)
+	if s.checkIfUserAuthenticated(w, r) {
+		return
+	}
 
 	if s.newConnection {
 		s.createDatabaseSession()
@@ -101,12 +101,13 @@ func (s *Server) RandomDrink(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		zap.L().Error("error reading data from database", zap.Error(err))
 	}
+	fmt.Println(data)
 	err = json.NewEncoder(w).Encode(data)
 	if err != nil {
 		zap.L().Error("error in json output", zap.Error(err))
 	}
-
 }
+
 func (s *Server) createDatabaseSession() {
 	mongodb, err := mongodb.NewMongoSession(s.host, "", "", s.database, s.collection)
 	if err != nil {

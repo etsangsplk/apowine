@@ -17,7 +17,6 @@ import (
 	"github.com/aporeto-inc/apowine/source/mongodb-lib"
 	"github.com/aporeto-inc/apowine/source/server"
 	"github.com/aporeto-inc/apowine/source/server/configuration"
-	"github.com/aporeto-inc/apowine/source/server/internal/auth"
 	"github.com/aporeto-inc/apowine/source/version"
 	"github.com/gorilla/mux"
 )
@@ -73,20 +72,7 @@ func main() {
 
 	handler = options.Handler(handler)
 
-	authHandler := auth.NewAuth()
-
-	server := server.NewServer(
-		session,
-		cfg.MakeNewConnection,
-		host,
-		cfg.MongoDatabaseName,
-		cfg.MongoCollectionName,
-		authHandler)
-
-	r.HandleFunc("/", authHandler.Login).Methods(http.MethodGet)
-	r.HandleFunc("/login", authHandler.Login).Methods(http.MethodGet)
-	r.HandleFunc("/logout", authHandler.Logout).Methods(http.MethodGet)
-	r.HandleFunc("/oauth2/github/callback", authHandler.GithubCallbackHandler).Methods(http.MethodGet)
+	server := server.NewServer(session, cfg.MakeNewConnection, host, cfg.MongoDatabaseName, cfg.MongoCollectionName)
 
 	r.HandleFunc("/random", server.RandomDrink).Methods(http.MethodGet)
 

@@ -77,7 +77,6 @@ function RandomDrink(drinkType){
   request.onload=function(){
     var name = JSON.parse(request.response)
     alert("ID: "+ name.id+"\n"+ "BeerName: "+name.beername)
-    document.getElementById("RbeerOP").innerHTML = "ID";
   }
   request.send();
 }else if (drinkType=="wine"){

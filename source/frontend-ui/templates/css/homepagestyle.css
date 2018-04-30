@@ -37,6 +37,11 @@ visibility: hidden;
   margin-top: 25%;
 }
 
+.drink{
+  color: white;
+  background-color: white;
+}
+
 .button {
     background-color: #008CBA;
     border: none;

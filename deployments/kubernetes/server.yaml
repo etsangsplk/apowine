@@ -2,15 +2,20 @@ apiVersion: extensions/v1beta1
 kind: ReplicaSet
 metadata:
   labels:
-    app: apowine-server
+      app: apowine-server
+      role: backend
   name: apowine-server
   namespace: apowine
 spec:
   replicas: 3
+  selector:
+    matchLabels:
+      app: apowine-server
   template:
     metadata:
       labels:
-        app: apowine-server
+          app: apowine-server
+          role: backend
     spec:
       containers:
         - image: aporeto/apowine-server:latest
@@ -31,7 +36,8 @@ metadata:
   namespace: apowine
 spec:
   selector:
-    app: apowine-server
+      app: apowine-server
+      role: backend
   ports:
     - protocol: TCP
       port: 3000

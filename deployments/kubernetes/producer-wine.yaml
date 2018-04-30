@@ -2,11 +2,19 @@ apiVersion: batch/v1
 kind: Job
 metadata:
   name: apowine-producerwine
+  labels:
+      app: apowine-producerwine
+      role: producer
+      drink: wine
   namespace: apowine
 spec:
   template:
     metadata:
       name: apowine-producerwine
+      labels:
+          app: apowine-producerwine
+          role: producer
+          drink: wine
     spec:
       containers:
       - name: apowine-producerwine
@@ -14,4 +22,4 @@ spec:
         env:
            - name: APOWINE_SERVERURI
              value: http://server:3000/wine
-      restartPolicy: Never
+      restartPolicy: OnFailure

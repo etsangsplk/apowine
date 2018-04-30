@@ -1,0 +1,12 @@
+name: mongodb
+associatedTags:
+  - service=mongodb
+selectors:
+- - app=apowine-mongodb
+exposedPort: 27017
+exposedAPIs: 
+- - api=demo 
+port: 27017
+hosts:
+- "mongodb"
+type: TCP

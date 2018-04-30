@@ -1,0 +1,17 @@
+
+## DB 
+docker run -l app=apowine-mongodb -p 27017:27017 --name mongodb -d mongo
+
+## Server 
+docker run -l app=apowine-server --name server -p 3000:3000 --add-host mongodb:192.168.100.100 -e APOWINE_MONGOURL=mongodb:27017 -e APOWINE_SERVERPORT=:3000 -e APOWINE_MAKENEWCONNECTION=true  -d aporeto/apowine-server:latest
+
+## Load commands 
+docker run  --rm --name producer --add-host apowine-server:192.168.100.100 -e APOWINE_LOGLEVEL=debug -e APOWINE_SERVERURI=http://apowine-server:3000/beer aporeto/apowine-producerbeer:latest
+docker run  --rm --name producer --add-host apowine-server:192.168.100.100 -e APOWINE_LOGLEVEL=debug -e APOWINE_SERVERURI=http://apowine-server:3000/wine aporeto/apowine-producerwine:latest
+
+## UI 
+docker run --rm --name ui -l app=apowine-ui -d -p 80:3005 --add-host apowine-server:192.168.100.100 -e APOWINE_SERVERADDRESS=http://apowine-server:3000 -e APOWINE_LOGLEVEL=debug aporeto/apowine-client:latest
+
+## Repeating clients 
+docker run  --name beer-client -l app=beer-client --add-host apowine-server:192.168.100.100 -e URI=http://apowine-server:3000/beer/random -d aporeto/apowine-clientcurl:latest
+docker run  --name wine-client -l app=wine-client --add-host apowine-server:192.168.100.100 -e URI=http://apowine-server:3000/wine/random -d aporeto/apowine-clientcurl:latest

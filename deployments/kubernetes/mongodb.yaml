@@ -3,15 +3,20 @@ kind: ReplicaSet
 metadata:
   creationTimestamp: null
   labels:
-    app: apowine-mongodb
+      app: apowine-mongodb
+      role: database
   name: apowine-mongodb
   namespace: apowine
 spec:
+  selector:
+    matchLabels:
+      app: apowine-mongodb
   template:
     metadata:
       creationTimestamp: null
       labels:
         app: apowine-mongodb
+        role: database
     spec:
       containers:
       - image: mongo:latest
@@ -28,7 +33,7 @@ metadata:
   namespace: apowine
 spec:
   selector:
-    app: apowine-mongodb
+      app: apowine-mongodb
   ports:
     - protocol: TCP
       name: port2

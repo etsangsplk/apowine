@@ -7,6 +7,7 @@ metadata:
     role: client
     drink: beer
     app: beer-getter
+    type: cli
 spec:
   replicas: 3
   selector:
@@ -19,6 +20,7 @@ spec:
         role: client
         drink: beer
         app: beer-getter
+        type: cli
     spec:
       containers:
           - name: client
@@ -36,6 +38,7 @@ metadata:
     role: client
     drink: wine
     app: wine-getter
+    type: cli
 spec:
   replicas: 3
   selector:
@@ -48,6 +51,7 @@ spec:
         role: client
         drink: wine
         app: wine-getter
+        type: cli
     spec:
       containers:
           - name: client

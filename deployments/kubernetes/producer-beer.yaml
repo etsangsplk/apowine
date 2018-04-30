@@ -2,11 +2,19 @@ apiVersion: batch/v1
 kind: Job
 metadata:
   name: apowine-producerbeer
+  labels:
+      app: apowine-producerbeer
+      role: producer
+      drink: beer
   namespace: apowine
 spec:
   template:
     metadata:
       name: apowine-producerbeer
+      labels:
+          app: apowine-producerbeer
+          role: producer
+          drink: beer
     spec:
       containers:
       - name: apowine-producerbeer
@@ -16,4 +24,4 @@ spec:
              value: http://server:3000/beer
            - name: APOWINE_LOGLEVEL
              value: debug
-      restartPolicy: Never
+      restartPolicy: OnFailure

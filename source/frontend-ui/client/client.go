@@ -26,7 +26,7 @@ func GenerateLoginPage(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("LOGIN PAGE")
 	t, err := template.New("login.html").ParseFiles("/Users/sibi/apomux/workspace/code/go/src/github.com/aporeto-inc/apowine/source/frontend-ui/templates/login.html")
 	if err != nil {
-		fmt.Println(err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
 
 	err = t.Execute(w, nil)
@@ -56,7 +56,7 @@ func (c *Client) GenerateClientPage(w http.ResponseWriter, r *http.Request) {
 
 	err = t.Execute(w, nil)
 	if err != nil {
-		http.Error(w, err.Error(), 3)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
 
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
@@ -74,8 +74,7 @@ func (c *Client) GenerateDrinkManipulator(w http.ResponseWriter, r *http.Request
 		operation := r.URL.Query().Get("operationType")
 		err := c.manipulateData(operation, r, &c.beer, mongodb.BEER)
 		if err != nil {
-			fmt.Println("DrinkError", err)
-			//http.Error(w, err.Error(), 2)
+			http.Error(w, err.Error(), http.StatusInternalServerError)
 		}
 		w.Header().Set("Content-Type", "application/json")
 		w.Header().Set("id_token", session.Values["id_token"].(string))
@@ -94,7 +93,7 @@ func (c *Client) GenerateDrinkManipulator(w http.ResponseWriter, r *http.Request
 		w.Header().Set("id_token", "token")
 		err = json.NewEncoder(w).Encode(c.wine)
 		if err != nil {
-			http.Error(w, err.Error(), 3)
+			http.Error(w, err.Error(), http.StatusInternalServerError)
 		}
 	}
 }
@@ -194,16 +193,16 @@ func (c *Client) GenerateRandomDrinkManipulator(w http.ResponseWriter, r *http.R
 
 	response, err := http.Get(c.serverAddress + "/random")
 	if err != nil {
-		http.Error(w, err.Error(), 2)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
 	data, err := ioutil.ReadAll(response.Body)
 	if err != nil {
-		http.Error(w, err.Error(), 3)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
 	reader := bytes.NewReader(data)
 	err = json.NewDecoder(reader).Decode(&beer)
 	if err != nil {
-		http.Error(w, err.Error(), 4)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
 
 	json.NewDecoder(reader).Decode(&wine)
@@ -211,12 +210,12 @@ func (c *Client) GenerateRandomDrinkManipulator(w http.ResponseWriter, r *http.R
 	if beer.BeerName != "" {
 		err = json.NewEncoder(w).Encode(beer)
 		if err != nil {
-			http.Error(w, err.Error(), 5)
+			http.Error(w, err.Error(), http.StatusInternalServerError)
 		}
 	} else if wine.WineName != "" {
 		err = json.NewEncoder(w).Encode(wine)
 		if err != nil {
-			http.Error(w, err.Error(), 6)
+			http.Error(w, err.Error(), http.StatusInternalServerError)
 		}
 	}
 }

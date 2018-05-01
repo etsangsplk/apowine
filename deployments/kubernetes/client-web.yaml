@@ -27,7 +27,7 @@ spec:
              - name: APOWINE_LOGLEVEL
                value: "debug"
              - name: APOWINE_SERVERADDRESS
-               value: http://server:3000
+               value: http://server.apowine.svc.cluster.local:3000
           name: apowine-client
           resources: {}
 status:

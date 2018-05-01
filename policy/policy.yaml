@@ -37,11 +37,11 @@ RESTAPISpecs:
     methods: [ GET, POST, PUT, DELETE]
   - URI: "/wine"
     scopes:
-    - scope:default 
+    - scope:default
     methods: [ GET, POST, PUT, DELETE]
   - URI: "/wine/*"
     scopes:
-    - scope:default 
+    - scope:default
     methods: [ GET, POST, PUT, DELETE]
   - URI: "/beer/*"
     scopes:
@@ -83,12 +83,12 @@ services:
     - service=ui
   selectors:
   - - app=apowine-ui 
-  exposedPort: 80
+  exposedPort: 4443
   exposedAPIs: 
   - - spec:api=client 
   port: 3005
   hosts:
-  - "client-public.apowine.svc.cluster.local"
+  - "apowine.aporeto.com"
   type: HTTP
 
 # TokenScopePolicies 

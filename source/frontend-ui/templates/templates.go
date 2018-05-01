@@ -126,13 +126,23 @@ function CreateDrink(drinkType){
   var drinkName = document.getElementById("CbeerValue").value;
   request.open('POST', '/drink?drinkType=beer&&operationType=create&&name='+drinkName, true);
   request.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
-  alert("BeerName: "+drinkName)
+  request.onerror=function(e) {
+    alert("Error creating object")
+  }
+  request.onload=function(e) {
+    alert("Beer created")
+  }
   request.send(JSON.stringify({beername:drinkName}));
 }else{
   var drinkName = document.getElementById("CwineValue").value;
   request.open('POST', '/drink?drinkType=wine&&operationType=create&&name='+drinkName, true);
   request.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
-  alert("WineName: "+drinkName)
+  request.onerror=function(e) {
+    alert("Error creating object")
+  }
+  request.onload=function(e) {
+    alert("Wine created")
+  }
   request.send(JSON.stringify({winename:drinkName}));
 }
 }

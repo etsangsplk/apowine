@@ -7,8 +7,8 @@ import (
 	"html/template"
 	"io/ioutil"
 	"net/http"
+	"net/http/httputil"
 
-	"github.com/aporeto-inc/apowine/source/frontend-ui/client/internal/auth"
 	"github.com/aporeto-inc/apowine/source/mongodb-lib"
 )
 
@@ -16,8 +16,10 @@ import (
 type Client struct {
 	serverAddress string
 	drinkName     string
-	authHandler   *auth.Auth
 	beer          mongodb.Beer
+	realm         string
+	validity      string
+	midgardToken  string
 	wine          mongodb.Wine
 }
 
@@ -38,11 +40,51 @@ func GenerateLoginPage(w http.ResponseWriter, r *http.Request) {
 }
 
 // NewClient creates new client handler
-func NewClient(serverAddress string, authHandler *auth.Auth) *Client {
+func NewClient(serverAddress string, realm, validity string) *Client {
 
 	return &Client{
 		serverAddress: serverAddress,
-		authHandler:   authHandler,
+		validity:      validity,
+		realm:         realm,
+	}
+}
+
+func (c *Client) CatchToken(w http.ResponseWriter, r *http.Request) {
+
+	googleJWT := r.FormValue("idtoken")
+	fmt.Println(googleJWT)
+
+	url := "https://api.console.aporeto.com/issue"
+
+	var jsonStr = []byte(fmt.Sprintf(`{"data":"%s","realm":"%s","validity":"%s"}`, googleJWT, c.realm, c.validity))
+	req, err := http.NewRequest("POST", url, bytes.NewBuffer(jsonStr))
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+	}
+	req.Header.Set("Content-Type", "application/json; charset=UTF-8")
+
+	dumpReq, _ := httputil.DumpRequest(req, true)
+	fmt.Println(string(dumpReq))
+
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+	}
+	defer resp.Body.Close()
+
+	fmt.Println("response Status:", resp.Status)
+	fmt.Println("response Headers:", resp.Header)
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+	}
+	var midgardResponse map[string]interface{}
+	json.Unmarshal(body, &midgardResponse)
+	if midgardResponse["token"] != nil {
+		c.midgardToken = midgardResponse["token"].(string)
+	} else {
+		http.Error(w, "Error from midgard issuing token", http.StatusInternalServerError)
 	}
 }
 
@@ -66,8 +108,6 @@ func (c *Client) GenerateClientPage(w http.ResponseWriter, r *http.Request) {
 func (c *Client) GenerateDrinkManipulator(w http.ResponseWriter, r *http.Request) {
 	defer r.Body.Close()
 
-	session, _ := c.authHandler.GetCookie().GetCookieStore().Get(r, "googleSessions")
-
 	c.drinkName = r.URL.Query().Get("drinkType")
 	if c.drinkName == mongodb.BEER {
 		c.drinkName = mongodb.BEER
@@ -76,8 +116,6 @@ func (c *Client) GenerateDrinkManipulator(w http.ResponseWriter, r *http.Request
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 		}
-		w.Header().Set("Content-Type", "application/json")
-		w.Header().Set("id_token", session.Values["id_token"].(string))
 		err = json.NewEncoder(w).Encode(c.beer)
 		if err != nil {
 			http.Error(w, err.Error(), 2)
@@ -106,7 +144,6 @@ func (c *Client) manipulateData(operation string, r *http.Request, drinkTypeData
 		if err != nil {
 			return err
 		}
-
 		data, err := ioutil.ReadAll(response.Body)
 		if err != nil {
 			return err

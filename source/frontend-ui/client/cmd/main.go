@@ -14,8 +14,7 @@ import (
 	"go.uber.org/zap/zapcore"
 
 	"github.com/aporeto-inc/apowine/source/frontend-ui/client"
-	"github.com/aporeto-inc/apowine/source/frontend-ui/client/internal/auth"
-	"github.com/aporeto-inc/apowine/source/frontend-ui/client/internal/credential"
+
 	"github.com/aporeto-inc/apowine/source/frontend-ui/configuration"
 	"github.com/aporeto-inc/apowine/source/version"
 	"github.com/gorilla/mux"
@@ -66,18 +65,11 @@ func main() {
 
 	handler = options.Handler(handler)
 
-	googleCreds := credential.NewGoogleCreds(cfg.GoogleClientID, cfg.GoogleClientSecret, cfg.GoogleRedirectURI, cfg.GoogleRefreshToken)
-	githubCreds := credential.NewGithubCreds(cfg.GithubClientID, cfg.GithubClientSecret, cfg.GithubRedirectURI)
-
-	authHandler := auth.NewAuth(googleCreds, githubCreds)
-	r.HandleFunc("/login", authHandler.Login)
-	r.HandleFunc("/oauth2/github/callback", authHandler.GithubCallbackHandler).Methods(http.MethodGet)
-	r.HandleFunc("/oauth2/google/callback", authHandler.GoogleCallbackHandler).Methods(http.MethodGet)
-
 	r.PathPrefix("/static/").Handler(http.StripPrefix("/static/", http.FileServer(http.Dir("/Users/sibi/apomux/workspace/code/go/src/github.com/aporeto-inc/apowine/source/frontend-ui/templates"))))
 
-	clientHandler := client.NewClient(cfg.ServerAddress, authHandler)
+	clientHandler := client.NewClient(cfg.ServerAddress, cfg.MidgardTokenRealm, cfg.MidgardTokenValidity)
 	r.HandleFunc("/", client.GenerateLoginPage)
+	r.HandleFunc("/catchtoken", clientHandler.CatchToken)
 	r.HandleFunc("/home", clientHandler.GenerateClientPage)
 	r.HandleFunc("/drink", clientHandler.GenerateDrinkManipulator)
 	r.HandleFunc("/random", clientHandler.GenerateRandomDrinkManipulator)

@@ -1,13 +1,42 @@
-<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="UTF-8">
-  <title>APOWINE-LOGIN</title>
-<script src="/static/js/login.js"></script>
-</head>
+<html lang="en">
+  <head>
+    <meta name="google-signin-scope" content="openid profile email">
+    <meta name="google-signin-client_id" content="615518171834-rcrg24gvcl2bre5l1ur71j0242s1kg3m.apps.googleusercontent.com">
+    <script src="https://apis.google.com/js/platform.js" async defer></script>
+  </head>
+  <body>
+    <div class="g-signin2" data-onsuccess="onSignIn" data-theme="dark"></div>
+    <a href="#" onclick="signOut();">Sign out</a>
+    <script>
+      function onSignIn(googleUser) {
 
-<body class="bodyStyle">
-<button onclick="GetGoogleLoginPage();">Login with Google!</button>
-<button onclick="GetGithubLoginPage();">Login with Github!</button>
-</body>
+        var profile = googleUser.getBasicProfile();
+        console.log("ID: " + profile.getId());
+        console.log('Full Name: ' + profile.getName());
+        console.log('Given Name: ' + profile.getGivenName());
+        console.log('Family Name: ' + profile.getFamilyName());
+        console.log("Image URL: " + profile.getImageUrl());
+        console.log("Email: " + profile.getEmail());
+
+        var id_token = googleUser.getAuthResponse().id_token;
+        console.log("ID Token: " + id_token);
+        var xhr = new XMLHttpRequest();
+xhr.open('POST', 'http://localhost:43245/catchtoken');
+xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+xhr.onload = function() {
+  window.location.href = "http://localhost:43245/home";
+};
+xhr.onerror=function(){
+  alert("Please login...")
+}
+xhr.send('idtoken=' + id_token);
+      };
+      function signOut() {
+   var auth2 = gapi.auth2.getAuthInstance();
+   auth2.signOut().then(function () {
+     console.log('User signed out.');
+   });
+ }
+    </script>
+  </body>
 </html>

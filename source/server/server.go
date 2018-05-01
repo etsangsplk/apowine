@@ -23,6 +23,9 @@ type Server struct {
 func NewServer(mongo *mongodb.MongoDB, isNewConnection bool, host []string, database string, collection string) *Server {
 	zap.L().Info("Creating a new server handler")
 
+	if isNewConnection && mongo != nil {
+		mongo.GetSession().Close()
+	}
 	return &Server{
 		mongodb:       mongo,
 		newConnection: isNewConnection,

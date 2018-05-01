@@ -104,6 +104,7 @@ func (c *Client) manipulateData(operation string, r *http.Request, drinkTypeData
 		if err != nil {
 			return err
 		}
+
 		_, err = http.Post(c.serverAddress+"/"+c.drinkName, "application/json", bytes.NewBuffer(jsonValue))
 		if err != nil {
 			return err

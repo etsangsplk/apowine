@@ -9,8 +9,8 @@ const UITemplate = `
   <title>APOWINE</title>
   <style>
   .bodyStyle{
-    background-color: black;
-    color: white;
+    background-color: white;
+    color: darkred;
     font-size: 20px;
     font-family: "Lucida Console", Monaco, monospace;
   }
@@ -43,22 +43,23 @@ const UITemplate = `
   }
 
   .more{
+    color: darkread;
     text-align:center;
     margin-top: 25%;
   }
 
   .button {
-      background-color: #008CBA;
+      background-color: darkred;
       border: none;
       border-radius: 25px;
       color: white;
-      padding: 100px 100px;
+      padding: 80px 80px;
       text-align: center;
       text-decoration: none;
       display: inline-block;
-      font-size: 20px;
+      font-size: 18px;
       font-family: "Lucida Console", Monaco, monospace;
-      margin: 40px 40px;
+      margin: 30px 30px;
       cursor: pointer;
   }
 
@@ -68,10 +69,10 @@ const UITemplate = `
 <body class="bodyStyle">
 <h1 class="titleHeader">APOWINE</h1>
 <div class="beer">
-  <button class="button" onclick="RandomDrink('beer');">BEER</button>
+  <button class="button" onclick="RandomDrink('beer');">Drink Beer</button>
 </div>
 <div class="wine">
-  <button class="button" onclick="RandomDrink('wine');">WINE</button>
+  <button class="button" onclick="RandomDrink('wine');">Drink Wine</button>
 </div>
 <div class="RbeerOP"><div>
 <div class="more">
@@ -126,22 +127,28 @@ function CreateDrink(drinkType){
   var drinkName = document.getElementById("CbeerValue").value;
   request.open('POST', '/drink?drinkType=beer&&operationType=create&&name='+drinkName, true);
   request.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
-  request.onerror=function(e) {
-    alert("Error creating object")
-  }
-  request.onload=function(e) {
-    alert("Beer created")
+  request.onreadystatechange=function(e) {
+    if (request.readyState == 4) {
+      if (request.status == 200) {
+        alert("Beer created")
+      } else {
+        alert("Failed to create beer")
+      }
+    }
   }
   request.send(JSON.stringify({beername:drinkName}));
 }else{
   var drinkName = document.getElementById("CwineValue").value;
   request.open('POST', '/drink?drinkType=wine&&operationType=create&&name='+drinkName, true);
   request.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
-  request.onerror=function(e) {
-    alert("Error creating object")
-  }
-  request.onload=function(e) {
-    alert("Wine created")
+  request.onreadystatechange=function(e) {
+    if (request.readyState == 4) {
+      if (request.status == 200) {
+        alert("Wine created")
+      } else {
+        alert("Failed to create wine")
+      }
+    }
   }
   request.send(JSON.stringify({winename:drinkName}));
 }
@@ -216,6 +223,16 @@ function RandomDrink(drinkType){
   request.onload=function(){
     var name = JSON.parse(request.response)
     alert("ID: "+ name.id+"\n"+"WineName: "+name.winename)
+  }
+  request.onreadystatechange=function(e) {
+    if (request.readyState == 4) {
+      if (request.status == 200) {
+        var name = JSON.parse(request.response)
+        alert("ID: "+ name.id+"\n"+"WineName: "+name.winename)
+      } else {
+        alert("You must be in France to drink wine.")
+      }
+    }
   }
   request.send();
 }else {

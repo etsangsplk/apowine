@@ -37,11 +37,11 @@ RESTAPISpecs:
     methods: [ GET, POST, PUT, DELETE]
   - URI: "/wine"
     scopes:
-    - scope:default
+    - scope:protected 
     methods: [ GET, POST, PUT, DELETE]
   - URI: "/wine/*"
     scopes:
-    - scope:default
+    - scope:protected
     methods: [ GET, POST, PUT, DELETE]
   - URI: "/beer/*"
     scopes:

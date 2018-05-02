@@ -10,7 +10,9 @@ position: relative;
 font-family: "Lucida Console", Monaco, monospace;
 visibility: hidden;
 }
-
+.signout{
+  float: right;
+}
 .beer {
   float: left;
   margin-left: 250px;

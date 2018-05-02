@@ -1,11 +1,12 @@
-function GetGoogleLoginPage(){
-  var request = new XMLHttpRequest();
-  request.open('GET', '/login?loginDomain=google', true);
-  request.send();
+function signOut() {
+  var auth2 = gapi.auth2.getAuthInstance();
+  auth2.signOut().then(function () {
+    alert("User Successfully Signed Out")
+  });
 }
 
-function GetGithubLoginPage(){
-  var request = new XMLHttpRequest();
-  request.open('GET', '/login?loginDomain=github', true);
-  request.send();
+function onLoad() {
+  gapi.load('auth2', function() {
+    gapi.auth2.init();
+  });
 }

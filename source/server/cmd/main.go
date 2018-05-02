@@ -72,7 +72,9 @@ func main() {
 
 	handler = options.Handler(handler)
 
-	server := server.NewServer(session, cfg.MakeNewConnection, host, cfg.MongoDatabaseName, cfg.MongoCollectionName)
+	server := server.NewServer(session, host, cfg)
+
+	r.HandleFunc("/gettoken", server.GetToken).Methods(http.MethodGet)
 
 	r.HandleFunc("/random", server.RandomDrink).Methods(http.MethodGet)
 

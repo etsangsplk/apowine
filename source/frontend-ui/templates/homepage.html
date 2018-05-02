@@ -5,21 +5,24 @@
   <title>APOWINE</title>
   <link rel="stylesheet" type="text/css" href="/static/css/homepagestyle.css" />
   <script src="/static/js/app.js"></script>
+  <script src="/static/js/login.js"></script>
+  <meta name="google-signin-scope" content="openid profile email">
+  <meta name="google-signin-client_id" content="615518171834-rcrg24gvcl2bre5l1ur71j0242s1kg3m.apps.googleusercontent.com">
+  <script src="https://apis.google.com/js/platform.js?onload=onLoad" async defer></script>
+
 </head>
 
 <body class="bodyStyle">
 <h1 class="titleHeader">APOWINE</h1>
+<a class="signout" href="#" onclick="signOut();">Sign out</a>
 <div class="beer">
   <button class="button" onclick="RandomDrink('beer');">BEER</button>
 </div>
 <div class="wine">
   <button class="button" onclick="RandomDrink('wine');">WINE</button>
 </div>
-<div class="RbeerOP"><div>
 <div class="more">
 <div id="popupbox">
-<form name="more" action="" method="post">
-
 <div class="beer">
   <h2>BEER</h2>
   <h4>CREATE A BEER</h4>
@@ -53,13 +56,13 @@
   <button onclick="DeleteDrink('wine');">Delete</button>
 </div>
 
-</form>
 <br />
 <center><a href="javascript:more('hide');">close</a></center>
 </div>
 
 <p><a href="javascript:more('show');">more>>></a></p>
 </div>
+
 </body>
 
 </html>

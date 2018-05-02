@@ -3,10 +3,12 @@ package server
 import (
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"net/http"
 	"strings"
 
 	"github.com/aporeto-inc/apowine/source/mongodb-lib"
+	"github.com/aporeto-inc/apowine/source/server/configuration"
 	"github.com/gorilla/mux"
 	"github.com/gorilla/sessions"
 	"go.uber.org/zap"
@@ -14,32 +16,73 @@ import (
 
 // Server holds database object
 type Server struct {
-	mongodb       *mongodb.MongoDB
-	newConnection bool
-	host          []string
-	database      string
-	collection    string
-	session       *sessions.Session
+	mongodb          *mongodb.MongoDB
+	midgardToken     string
+	newConnection    bool
+	host             []string
+	database         string
+	collection       string
+	session          *sessions.Session
+	midgardTokenJSON *midgardtoken
+	authorizedUser   *userdetails
+	unauthorizedUser *userdetails
+}
+
+type userdetails struct {
+	email string
+	lname string
+	fname string
+}
+
+type midgardtoken struct {
+	Claims struct {
+		Aud  string `json:"aud"`
+		Data struct {
+			Email        string `json:"email"`
+			FamilyName   string `json:"familyName"`
+			GivenName    string `json:"givenName"`
+			Name         string `json:"name"`
+			Organization string `json:"organization"`
+			Realm        string `json:"realm"`
+		} `json:"data"`
+		Exp   int    `json:"exp"`
+		Iat   int    `json:"iat"`
+		Iss   string `json:"iss"`
+		Realm string `json:"realm"`
+		Sub   string `json:"sub"`
+	} `json:"claims"`
 }
 
 // NewServer creates a new server handler
-func NewServer(mongo *mongodb.MongoDB, isNewConnection bool, host []string, database string, collection string) *Server {
+func NewServer(mongo *mongodb.MongoDB, host []string, cfg *configuration.Configuration) *Server {
 	zap.L().Info("Creating a new server handler")
 
+	authorizedUser := &userdetails{
+		email: cfg.AuthorizedEmail,
+		fname: cfg.AuthorizedGivenName,
+		lname: cfg.AuthorizedFamilyName,
+	}
+
+	unauthorizedUser := &userdetails{
+		email: cfg.UnauthorizedEmail,
+		fname: cfg.UnsuthorizedGivenName,
+		lname: cfg.UnauthorizedFamilyName,
+	}
+
 	return &Server{
-		mongodb:       mongo,
-		newConnection: isNewConnection,
-		host:          host,
-		database:      database,
-		collection:    collection,
+		mongodb:          mongo,
+		newConnection:    cfg.MakeNewConnection,
+		host:             host,
+		database:         cfg.MongoDatabaseName,
+		collection:       cfg.MongoCollectionName,
+		authorizedUser:   authorizedUser,
+		unauthorizedUser: unauthorizedUser,
 	}
 }
 
 // AllDrinks returns drinks based on type in JSON format
 func (s *Server) AllDrinks(w http.ResponseWriter, r *http.Request) {
 	defer r.Body.Close()
-
-	s.checkIfUserAuthenticated(w, r)
 
 	if s.newConnection {
 		s.createDatabaseSession()
@@ -59,36 +102,51 @@ func (s *Server) AllDrinks(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (s *Server) checkIfUserAuthenticated(w http.ResponseWriter, r *http.Request) bool {
-	// cookie := s.auth.GetCookie()
-	//
-	// s.session, _ = cookie.GetCookieStore().Get(r, "sessions")
-	//
-	// // Check if user is authenticated
-	// if auth, ok := s.session.Values["authenticated"].(bool); !ok || !auth {
-	//
-	// 	if e := s.session.Save(r, w); e != nil {
-	// 		zap.L().Error("Error in saving the session ", zap.Error(e))
-	// 	}
-	// 	s.session.Values["redirectURL"] = r.URL.String()
-	// 	fmt.Println("URL", r.URL.String())
-	// 	if err := s.session.Save(r, w); err != nil {
-	// 		zap.Error(err)
-	// 	}
-	//
-	// 	http.Redirect(w, r, "/login", http.StatusTemporaryRedirect)
-	// 	return true
-	// }
-	return false
+func (s *Server) checkIfUserAuthenticated(w http.ResponseWriter, r *http.Request) error {
+
+	url := "https://api.console.aporeto.com/auth?token=" + s.midgardToken
+
+	req, err := http.NewRequest("GET", url, nil)
+	if err != nil {
+		return err
+	}
+
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		return err
+	}
+
+	claims, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return err
+	}
+
+	var token midgardtoken
+	json.Unmarshal(claims, &token)
+	s.midgardTokenJSON = &token
+	err = s.generateandValidateUserModel(s.midgardTokenJSON)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (s *Server) generateandValidateUserModel(tokenJSON *midgardtoken) error {
+	// Check for predefined authorizing policies
+	if tokenJSON.Claims.Data.Email == s.authorizedUser.email && tokenJSON.Claims.Data.GivenName == s.authorizedUser.fname && tokenJSON.Claims.Data.FamilyName == s.authorizedUser.lname {
+		return nil
+	} else if tokenJSON.Claims.Data.Email == s.unauthorizedUser.email && tokenJSON.Claims.Data.GivenName == s.unauthorizedUser.fname && tokenJSON.Claims.Data.FamilyName == s.unauthorizedUser.lname {
+		return fmt.Errorf(s.unauthorizedUser.fname + " is not authorized to access this resource")
+	}
+	// Enforcer will police
+	return nil
 }
 
 // RandomDrink returns random drink based on type in JSON format
 func (s *Server) RandomDrink(w http.ResponseWriter, r *http.Request) {
 	defer r.Body.Close()
-
-	if s.checkIfUserAuthenticated(w, r) {
-		return
-	}
 
 	if s.newConnection {
 		s.createDatabaseSession()
@@ -101,7 +159,7 @@ func (s *Server) RandomDrink(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		zap.L().Error("error reading data from database", zap.Error(err))
 	}
-	fmt.Println(data)
+
 	err = json.NewEncoder(w).Encode(data)
 	if err != nil {
 		zap.L().Error("error in json output", zap.Error(err))
@@ -121,7 +179,11 @@ func (s *Server) createDatabaseSession() {
 func (s *Server) FindDrinkEndpoint(w http.ResponseWriter, r *http.Request) {
 	defer r.Body.Close()
 
-	s.checkIfUserAuthenticated(w, r)
+	err := s.checkIfUserAuthenticated(w, r)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
 
 	if s.newConnection {
 		s.createDatabaseSession()
@@ -146,7 +208,11 @@ func (s *Server) FindDrinkEndpoint(w http.ResponseWriter, r *http.Request) {
 func (s *Server) CreateDrinkEndPoint(w http.ResponseWriter, r *http.Request) {
 	defer r.Body.Close()
 
-	s.checkIfUserAuthenticated(w, r)
+	err := s.checkIfUserAuthenticated(w, r)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
 
 	if s.newConnection {
 		s.createDatabaseSession()
@@ -154,9 +220,22 @@ func (s *Server) CreateDrinkEndPoint(w http.ResponseWriter, r *http.Request) {
 
 	drinkName := strings.SplitAfter(r.URL.RequestURI(), "/")
 	decoder := json.NewDecoder(r.Body)
-	err := s.mongodb.Insert(decoder, drinkName[1])
+	err = s.mongodb.Insert(decoder, drinkName[1])
 	if err != nil {
 		zap.L().Error("error inserting data from database", zap.Error(err))
+	}
+}
+
+func (s *Server) GetToken(w http.ResponseWriter, r *http.Request) {
+	defer r.Body.Close()
+
+	bearerToken := r.Header.Get("Authorization")
+	tokenParts := strings.SplitAfter(bearerToken, " ")
+	token := tokenParts[1]
+	if token != "" {
+		s.midgardToken = token
+	} else {
+		http.Error(w, "No token received from client", http.StatusInternalServerError)
 	}
 }
 
@@ -164,7 +243,11 @@ func (s *Server) CreateDrinkEndPoint(w http.ResponseWriter, r *http.Request) {
 func (s *Server) UpdateDrinkEndPoint(w http.ResponseWriter, r *http.Request) {
 	defer r.Body.Close()
 
-	s.checkIfUserAuthenticated(w, r)
+	err := s.checkIfUserAuthenticated(w, r)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
 
 	if s.newConnection {
 		s.createDatabaseSession()
@@ -173,7 +256,7 @@ func (s *Server) UpdateDrinkEndPoint(w http.ResponseWriter, r *http.Request) {
 	drinkName := strings.SplitAfter(r.URL.RequestURI(), "/")
 	decoder := json.NewDecoder(r.Body)
 
-	err := s.mongodb.Update(decoder, drinkName[1])
+	err = s.mongodb.Update(decoder, drinkName[1])
 	if err != nil {
 		zap.L().Error("error updating data in database", zap.Error(err))
 	}
@@ -183,7 +266,11 @@ func (s *Server) UpdateDrinkEndPoint(w http.ResponseWriter, r *http.Request) {
 func (s *Server) DeleteDrinkEndPoint(w http.ResponseWriter, r *http.Request) {
 	defer r.Body.Close()
 
-	s.checkIfUserAuthenticated(w, r)
+	err := s.checkIfUserAuthenticated(w, r)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
 
 	if s.newConnection {
 		s.createDatabaseSession()
@@ -191,7 +278,7 @@ func (s *Server) DeleteDrinkEndPoint(w http.ResponseWriter, r *http.Request) {
 
 	params := mux.Vars(r)
 
-	err := s.mongodb.Delete(params["id"])
+	err = s.mongodb.Delete(params["id"])
 	if err != nil {
 		zap.L().Error("error deleting data from database", zap.Error(err))
 	}

@@ -12,10 +12,12 @@ build:
 
 package: build
 	mv cmd frontend
+	cp -R ../../templates templates
 
 clean:
 	rm -rf vendor
 	rm -rf frontend
+	rm -rf templates
 
 docker_build: package
 		docker \

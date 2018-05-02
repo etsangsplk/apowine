@@ -3,9 +3,21 @@
     <meta name="google-signin-scope" content="openid profile email">
     <meta name="google-signin-client_id" content="615518171834-rcrg24gvcl2bre5l1ur71j0242s1kg3m.apps.googleusercontent.com">
     <script src="https://apis.google.com/js/platform.js" async defer></script>
+    <style>
+    .g-signin2{
+      width: 100%;
+    }
+
+    .g-signin2 > div{
+      margin: 0 auto;
+      margin-top: 20%;
+    }
+    </style>
   </head>
   <body>
-    <div class="g-signin2" data-onsuccess="onSignIn" data-theme="dark"></div>
+    <div class="g-signin2" data-onsuccess="onSignIn"
+    data-theme="dark" data-width="300" data-height="50"
+    data-longtitle="true">button</div>
 
     <script>
       function onSignIn(googleUser) {

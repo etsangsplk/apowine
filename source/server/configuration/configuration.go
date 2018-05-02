@@ -62,7 +62,7 @@ func LoadConfiguration() (*Configuration, error) {
 	viper.SetDefault("LogLevel", "info")
 	viper.SetDefault("LogFormat", "human")
 
-	viper.SetDefault("MakeNewConnection", false)
+	viper.SetDefault("MakeNewConnection", true)
 	viper.SetDefault("MongoDatabaseName", "drinksdb")
 	viper.SetDefault("MongoCollectionName", "drinkscollection")
 	viper.SetDefault("MongoURL", "127.0.0.1:27017")

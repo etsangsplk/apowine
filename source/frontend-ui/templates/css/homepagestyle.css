@@ -1,6 +1,6 @@
 .bodyStyle{
-  background-color: black;
-  color: white;
+  background-color: white;
+  color: darkred;
   font-size: 20px;
   font-family: "Lucida Console", Monaco, monospace;
 }
@@ -26,6 +26,7 @@ visibility: hidden;
 }
 
 .random{
+  color: darkread;
   text-align: center;
   margin-top: 50px;
 }
@@ -45,16 +46,16 @@ visibility: hidden;
 }
 
 .button {
-    background-color: #008CBA;
+    background-color: darkred;
     border: none;
     border-radius: 25px;
     color: white;
-    padding: 100px 100px;
+    padding: 80px 80px;
     text-align: center;
     text-decoration: none;
     display: inline-block;
     font-size: 20px;
     font-family: "Lucida Console", Monaco, monospace;
-    margin: 40px 40px;
+    margin: 30px 30px;
     cursor: pointer;
 }

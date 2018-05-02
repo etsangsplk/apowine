@@ -18,11 +18,11 @@ spec:
           role: backend
     spec:
       containers:
-        - image: aporeto/apowine-server:latest
+        - image: aporeto/apowine-server:k8s
           imagePullPolicy: Always
           env:
              - name: APOWINE_MONGOURL
-               value: mongodb:27017
+               value: mongodb.apowine.svc.cluster.local:27017
              - name: APOWINE_SERVERPORT
                value: :3000
              - name: APOWINE_MAKENEWCONNECTION

@@ -37,11 +37,11 @@ RESTAPISpecs:
     methods: [ GET, POST, PUT, DELETE]
   - URI: "/wine"
     scopes:
-    - scope:default 
+    - scope:protected 
     methods: [ GET, POST, PUT, DELETE]
   - URI: "/wine/*"
     scopes:
-    - scope:default 
+    - scope:protected
     methods: [ GET, POST, PUT, DELETE]
   - URI: "/beer/*"
     scopes:
@@ -62,10 +62,10 @@ services:
   - - api=demo 
   port: 27017
   hosts:
-  - "mongodb"
+  - "mongodb.apowine.svc.cluster.local"
   type: TCP
 # Apowine Server
-- name: apowine-server
+- name: server 
   associatedTags:
     - service=apowine
   selectors:
@@ -75,7 +75,7 @@ services:
   - - spec:api=drinks 
   port: 3000
   hosts:
-  - "apowine-server"
+  - "server.apowine.svc.cluster.local"
   type: HTTP
 # Apowine UI 
 - name: apowine-ui 
@@ -83,12 +83,12 @@ services:
     - service=ui
   selectors:
   - - app=apowine-ui 
-  exposedPort: 80
+  exposedPort: 4443
   exposedAPIs: 
   - - spec:api=client 
   port: 3005
   hosts:
-  - "apowine-ui"
+  - "apowine.aporeto.com"
   type: HTTP
 
 # TokenScopePolicies 
@@ -97,14 +97,14 @@ tokenscopepolicies:
   assignedScopes:
   - scope:default
   subject:
-  - - "$namespace=/apomux"
+  - - "$namespace=/flash/demo/apowine"
     - "$identity=processingunit"
 
 # NetworkAccessPolicy 
 networkaccesspolicies:
 - name: Apowine Access Policy
   subject:
-  - - "$namespace=/apomux"
+  - - "$namespace=/flash/demo/apowine"
   object:
   - - service=mongodb
   - - service=apowine 

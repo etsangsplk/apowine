@@ -69,6 +69,10 @@ func NewServer(mongo *mongodb.MongoDB, host []string, cfg *configuration.Configu
 		lname: cfg.UnauthorizedFamilyName,
 	}
 
+	if cfg.MakeNewConnection && mongo != nil {
+		mongo.GetSession().Close()
+	}
+
 	return &Server{
 		mongodb:          mongo,
 		newConnection:    cfg.MakeNewConnection,
@@ -84,14 +88,22 @@ func NewServer(mongo *mongodb.MongoDB, host []string, cfg *configuration.Configu
 func (s *Server) AllDrinks(w http.ResponseWriter, r *http.Request) {
 	defer r.Body.Close()
 
+	m := s.mongodb
+	var err error
 	if s.newConnection {
-		s.createDatabaseSession()
+
+		m, err = mongodb.NewMongoSession(s.host, "", "", s.database, s.collection)
+		if err != nil {
+			zap.L().Error("error creating a session", zap.Error(err))
+		}
+		defer m.GetSession().Close()
+
 	}
 
 	//Extracting the endpoints from URL
 	drinkName := strings.SplitAfter(r.URL.RequestURI(), "/")
 	decoder := json.NewDecoder(r.Body)
-	data, err := s.mongodb.Read(decoder, drinkName[1], false)
+	data, err := m.Read(decoder, drinkName[1], false)
 	if err != nil {
 		zap.L().Error("error reading data from database", zap.Error(err))
 	}
@@ -148,14 +160,22 @@ func (s *Server) generateandValidateUserModel(tokenJSON *midgardtoken) error {
 func (s *Server) RandomDrink(w http.ResponseWriter, r *http.Request) {
 	defer r.Body.Close()
 
+	m := s.mongodb
+	var err error
 	if s.newConnection {
-		s.createDatabaseSession()
+
+		m, err = mongodb.NewMongoSession(s.host, "", "", s.database, s.collection)
+		if err != nil {
+			zap.L().Error("error creating a session", zap.Error(err))
+		}
+		defer m.GetSession().Close()
+
 	}
 
 	endpoint := strings.SplitAfter(r.URL.RequestURI(), "/")
 	drinkName := strings.Replace(endpoint[1], "/", "", -1)
 	decoder := json.NewDecoder(r.Body)
-	data, err := s.mongodb.Read(decoder, drinkName, true)
+	data, err := m.Read(decoder, drinkName, true)
 	if err != nil {
 		zap.L().Error("error reading data from database", zap.Error(err))
 	}
@@ -185,15 +205,20 @@ func (s *Server) FindDrinkEndpoint(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	m := s.mongodb
 	if s.newConnection {
-		s.createDatabaseSession()
+		m, err = mongodb.NewMongoSession(s.host, "", "", s.database, s.collection)
+		if err != nil {
+			zap.L().Error("error creating a session", zap.Error(err))
+		}
+		defer m.GetSession().Close()
 	}
 
 	endpoint := strings.SplitAfter(r.URL.RequestURI(), "/")
 	drinkName := strings.Replace(endpoint[1], "/", "", -1)
 	params := mux.Vars(r)
 	decoder := json.NewDecoder(r.Body)
-	data, err := s.mongodb.ReadByID(params["id"], decoder, drinkName)
+	data, err := m.ReadByID(params["id"], decoder, drinkName)
 	if err != nil {
 		zap.L().Error("error reading data from database", zap.Error(err))
 	}
@@ -214,14 +239,22 @@ func (s *Server) CreateDrinkEndPoint(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	m := s.mongodb
+
 	if s.newConnection {
-		s.createDatabaseSession()
+		m, err = mongodb.NewMongoSession(s.host, "", "", s.database, s.collection)
+		if err != nil {
+			zap.L().Error("error creating a session", zap.Error(err))
+		}
+		defer m.GetSession().Close()
+
 	}
 
 	drinkName := strings.SplitAfter(r.URL.RequestURI(), "/")
 	decoder := json.NewDecoder(r.Body)
-	err = s.mongodb.Insert(decoder, drinkName[1])
-	if err != nil {
+
+	if err = m.Insert(decoder, drinkName[1]); err != nil {
+
 		zap.L().Error("error inserting data from database", zap.Error(err))
 	}
 }
@@ -250,15 +283,25 @@ func (s *Server) UpdateDrinkEndPoint(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if s.newConnection {
-		s.createDatabaseSession()
-	}
 
-	drinkName := strings.SplitAfter(r.URL.RequestURI(), "/")
-	decoder := json.NewDecoder(r.Body)
+		m := s.mongodb
+		var err error
+		if s.newConnection {
+			m, err = mongodb.NewMongoSession(s.host, "", "", s.database, s.collection)
+			if err != nil {
+				zap.L().Error("error creating a session", zap.Error(err))
+			}
+			defer m.GetSession().Close()
 
-	err = s.mongodb.Update(decoder, drinkName[1])
-	if err != nil {
-		zap.L().Error("error updating data in database", zap.Error(err))
+		}
+
+		drinkName := strings.SplitAfter(r.URL.RequestURI(), "/")
+		decoder := json.NewDecoder(r.Body)
+
+		if err = m.Update(decoder, drinkName[1]); err != nil {
+
+			zap.L().Error("error updating data in database", zap.Error(err))
+		}
 	}
 }
 
@@ -273,13 +316,23 @@ func (s *Server) DeleteDrinkEndPoint(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if s.newConnection {
-		s.createDatabaseSession()
-	}
 
-	params := mux.Vars(r)
+		m := s.mongodb
 
-	err = s.mongodb.Delete(params["id"])
-	if err != nil {
-		zap.L().Error("error deleting data from database", zap.Error(err))
+		if s.newConnection {
+			m, err = mongodb.NewMongoSession(s.host, "", "", s.database, s.collection)
+			if err != nil {
+				zap.L().Error("error creating a session", zap.Error(err))
+			}
+			defer m.GetSession().Close()
+
+		}
+
+		params := mux.Vars(r)
+
+		if err = m.Delete(params["id"]); err != nil {
+
+			zap.L().Error("error deleting data from database", zap.Error(err))
+		}
 	}
 }

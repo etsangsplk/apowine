@@ -9,6 +9,6 @@ RUN mkdir -p /apowine
 ADD frontend /apowine/frontend
 ADD templates /apowine/templates
 
-EXPOSE 3005
+EXPOSE 43245
 
 ENTRYPOINT ["/apowine/frontend"]

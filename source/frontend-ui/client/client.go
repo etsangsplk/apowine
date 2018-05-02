@@ -25,14 +25,14 @@ type Client struct {
 // GenerateClientPage generates HTML to manipulate data
 func GenerateLoginPage(w http.ResponseWriter, r *http.Request) {
 
-	t, err := template.New("login.html").ParseFiles("/Users/sibi/apomux/workspace/code/go/src/github.com/aporeto-inc/apowine/source/frontend-ui/templates/login.html")
+	t, err := template.New("login.html").ParseFiles("/apowine/templates/login.html")
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
 
 	err = t.Execute(w, nil)
 	if err != nil {
-		http.Error(w, err.Error(), 3)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
 
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
@@ -110,7 +110,7 @@ func (c *Client) GenerateClientPage(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
 
-	t, err := template.New("homepage.html").ParseFiles("/Users/sibi/apomux/workspace/code/go/src/github.com/aporeto-inc/apowine/source/frontend-ui/templates/homepage.html")
+	t, err := template.New("homepage.html").ParseFiles("/apowine/templates/homepage.html")
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
@@ -133,7 +133,7 @@ func (c *Client) GenerateDrinkManipulator(w http.ResponseWriter, r *http.Request
 		operation := r.URL.Query().Get("operationType")
 		err := c.manipulateData(operation, r, &c.beer, mongodb.BEER)
 		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
+			http.Error(w, err.Error(), http.StatusNotFound)
 			return
 		}
 		w.Header().Set("Content-Type", "application/json")
@@ -146,7 +146,7 @@ func (c *Client) GenerateDrinkManipulator(w http.ResponseWriter, r *http.Request
 		operation := r.URL.Query().Get("operationType")
 		err := c.manipulateData(operation, r, &c.wine, mongodb.WINE)
 		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
+			http.Error(w, err.Error(), http.StatusNotFound)
 			return
 		}
 		w.Header().Set("Content-Type", "application/json")
@@ -277,11 +277,11 @@ func (c *Client) GenerateRandomDrinkManipulator(w http.ResponseWriter, r *http.R
 
 	response, err := http.Get(c.serverAddress + "/random")
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		http.Error(w, err.Error(), http.StatusUnprocessableEntity)
 	}
 	data, err := ioutil.ReadAll(response.Body)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		http.Error(w, err.Error(), http.StatusUnprocessableEntity)
 	}
 	reader := bytes.NewReader(data)
 	err = json.NewDecoder(reader).Decode(&beer)

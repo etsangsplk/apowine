@@ -1,43 +1,43 @@
 APIVersion: 1
 
 RESTAPISpecs:
-# Client Service 
-- name: client spec 
+# Client Service
+- name: client spec
   description: Client API Service
   endpoints:
   - URI: "/drink"
     scopes:
-    - scope:default 
+    - scope:default
     public: true
     methods: [ GET, POST, PUT, DELETE]
   - URI: "/random"
     scopes:
-    - scope:default 
+    - scope:default
     public: true
     methods: [ GET, POST, PUT, DELETE]
   - URI: "/"
     scopes:
-    - scope:default 
-    public: true 
+    - scope:default
+    public: true
     methods: [ GET, POST, PUT, DELETE]
   associatedTags:
   - spec:api=client
-# DRINKS SPEC 
+# DRINKS SPEC
 - name: drinks
   description: ApoWine API Service
   endpoints:
   - URI: "/beer"
     scopes:
-    - scope:default 
+    - scope:default
     methods: [ GET, POST, PUT, DELETE]
   - URI: "/random"
     scopes:
-    - scope:default 
-    public: true 
+    - scope:default
+    public: true
     methods: [ GET, POST, PUT, DELETE]
   - URI: "/wine"
     scopes:
-    - scope:protected 
+    - scope:protected
     methods: [ GET, POST, PUT, DELETE]
   - URI: "/wine/*"
     scopes:
@@ -45,68 +45,68 @@ RESTAPISpecs:
     methods: [ GET, POST, PUT, DELETE]
   - URI: "/beer/*"
     scopes:
-    - scope:default 
+    - scope:default
     methods: [ GET, POST, PUT, DELETE]
   associatedTags:
   - spec:api=drinks
 
-services: 
-# Mongo DB 
+services:
+# Mongo DB
 - name: mongodb
   associatedTags:
     - service=mongodb
   selectors:
   - - app=apowine-mongodb
   exposedPort: 27017
-  exposedAPIs: 
-  - - api=demo 
+  exposedAPIs:
+  - - api=demo
   port: 27017
   hosts:
   - "mongodb.apowine.svc.cluster.local"
   type: TCP
 # Apowine Server
-- name: server 
+- name: server
   associatedTags:
     - service=apowine
   selectors:
   - - app=apowine-server
   exposedPort: 3000
-  exposedAPIs: 
-  - - spec:api=drinks 
+  exposedAPIs:
+  - - spec:api=drinks
   port: 3000
   hosts:
   - "server.apowine.svc.cluster.local"
   type: HTTP
-# Apowine UI 
-- name: apowine-ui 
+# Apowine UI
+- name: apowine-ui
   associatedTags:
     - service=ui
   selectors:
-  - - app=apowine-ui 
+  - - app=apowine-ui
   exposedPort: 4443
-  exposedAPIs: 
-  - - spec:api=client 
-  port: 3005
+  exposedAPIs:
+  - - spec:api=client
+  port: 43245
   hosts:
   - "apowine.aporeto.com"
   type: HTTP
 
-# TokenScopePolicies 
+# TokenScopePolicies
 tokenscopepolicies:
-- name: Apowine Default Scope  
+- name: Apowine Default Scope
   assignedScopes:
   - scope:default
   subject:
   - - "$namespace=/flash/demo/apowine"
     - "$identity=processingunit"
 
-# NetworkAccessPolicy 
+# NetworkAccessPolicy
 networkaccesspolicies:
 - name: Apowine Access Policy
   subject:
   - - "$namespace=/flash/demo/apowine"
   object:
   - - service=mongodb
-  - - service=apowine 
-  - - service=dns 
+  - - service=apowine
+  - - service=dns
   action: "Allow"

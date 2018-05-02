@@ -45,8 +45,8 @@ spec:
       type: ui
   ports:
     - protocol: TCP
-      port: 3005
-      targetPort: 3005
+      port: 43245
+      targetPort: 43245
 ---
 kind: Service
 apiVersion: v1
@@ -61,5 +61,5 @@ spec:
   ports:
   - protocol: TCP
     port: 4443
-    targetPort: 3005
+    targetPort: 43245
   type: LoadBalancer

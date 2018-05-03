@@ -7,25 +7,33 @@ import (
 	"html/template"
 	"io/ioutil"
 	"net/http"
+	"strconv"
 
 	"github.com/aporeto-inc/apowine/source/mongodb-lib"
 )
 
+const (
+	OAuthStateString = "apowine"
+	authenticated    = "authenticated"
+	idtoken          = "idtoken"
+)
+
 // Client holds data to connect to the serverß
 type Client struct {
-	serverAddress string
-	drinkName     string
-	beer          mongodb.Beer
-	realm         string
-	validity      string
-	midgardToken  string
-	wine          mongodb.Wine
+	serverAddress   string
+	drinkName       string
+	beer            mongodb.Beer
+	realm           string
+	validity        string
+	midgardToken    string
+	wine            mongodb.Wine
+	isAuthenticated bool
 }
 
 // GenerateClientPage generates HTML to manipulate data
 func GenerateLoginPage(w http.ResponseWriter, r *http.Request) {
 
-	t, err := template.New("login.html").ParseFiles("/apowine/templates/login.html")
+	t, err := template.New("login.html").ParseFiles("/Users/sibi/apomux/workspace/code/go/src/github.com/aporeto-inc/apowine/source/frontend-ui/templates/login.html")
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
@@ -50,7 +58,18 @@ func NewClient(serverAddress string, realm, validity string) *Client {
 
 func (c *Client) CatchToken(w http.ResponseWriter, r *http.Request) {
 
-	googleJWT := r.FormValue("idtoken")
+	if err := r.ParseForm(); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	googleJWT := r.Form.Get(idtoken)
+	auth, err := strconv.ParseBool(r.Form.Get(authenticated))
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	c.isAuthenticated = auth
 
 	url := "https://api.console.aporeto.com/issue"
 
@@ -106,11 +125,16 @@ func (c *Client) sendTokenToServer() error {
 // GenerateClientPage generates HTML to manipulate data
 func (c *Client) GenerateClientPage(w http.ResponseWriter, r *http.Request) {
 
+	if !c.isAuthenticated {
+		http.Error(w, "Please login again...", http.StatusInternalServerError)
+		return
+	}
+
 	if err := c.sendTokenToServer(); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
 
-	t, err := template.New("homepage.html").ParseFiles("/apowine/templates/homepage.html")
+	t, err := template.New("homepage.html").ParseFiles("/Users/sibi/apomux/workspace/code/go/src/github.com/aporeto-inc/apowine/source/frontend-ui/templates/homepage.html")
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}

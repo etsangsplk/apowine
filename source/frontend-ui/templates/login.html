@@ -41,7 +41,7 @@ xhr.onload = function() {
 xhr.onerror=function(){
   alert("Please login...")
 }
-xhr.send('idtoken=' + id_token);
+xhr.send('idtoken=' + id_token + '&authenticated=' + true);
       };
 
     </script>

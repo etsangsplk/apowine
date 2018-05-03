@@ -3,6 +3,10 @@ function signOut() {
   auth2.signOut().then(function () {
     alert("User Successfully Signed Out")
   });
+  var xhr = new XMLHttpRequest();
+  xhr.open('POST', '/catchtoken');
+  xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+  xhr.send('authenticated=' + false);
 }
 
 function onLoad() {

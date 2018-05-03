@@ -65,7 +65,7 @@ func main() {
 
 	handler = options.Handler(handler)
 
-	r.PathPrefix("/static/").Handler(http.StripPrefix("/static/", http.FileServer(http.Dir("/Users/sibi/apomux/workspace/code/go/src/github.com/aporeto-inc/apowine/source/frontend-ui/templates"))))
+	r.PathPrefix("/static/").Handler(http.StripPrefix("/static/", http.FileServer(http.Dir("/apowine/templates"))))
 
 	clientHandler := client.NewClient(cfg.ServerAddress, cfg.MidgardTokenRealm, cfg.MidgardTokenValidity)
 	r.HandleFunc("/", client.GenerateLoginPage)

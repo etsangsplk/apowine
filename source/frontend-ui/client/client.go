@@ -33,7 +33,7 @@ type Client struct {
 // GenerateClientPage generates HTML to manipulate data
 func GenerateLoginPage(w http.ResponseWriter, r *http.Request) {
 
-	t, err := template.New("login.html").ParseFiles("/Users/sibi/apomux/workspace/code/go/src/github.com/aporeto-inc/apowine/source/frontend-ui/templates/login.html")
+	t, err := template.New("login.html").ParseFiles("/apowine/templates/login.html")
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
@@ -134,7 +134,7 @@ func (c *Client) GenerateClientPage(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
 
-	t, err := template.New("homepage.html").ParseFiles("/Users/sibi/apomux/workspace/code/go/src/github.com/aporeto-inc/apowine/source/frontend-ui/templates/homepage.html")
+	t, err := template.New("homepage.html").ParseFiles("/apowine/templates/homepage.html")
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}

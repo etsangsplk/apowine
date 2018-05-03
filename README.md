@@ -6,7 +6,6 @@ Apowine is a simple application that demonstrates how aporeto uses policies to s
 There are 3 major and an associated components in apowine
 
 ----
-**More on Kubernetes network policies:**
 
 * Frontend-UI/Frontend-Curl
 

@@ -12,7 +12,7 @@ build:
 
 package: build
 	mv cmd frontend
-	cp -R ../../templates templates
+	cp -a ../../templates/. templates
 
 clean:
 	rm -rf vendor

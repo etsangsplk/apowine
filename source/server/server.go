@@ -267,6 +267,7 @@ func (s *Server) GetToken(w http.ResponseWriter, r *http.Request) {
 	token := tokenParts[1]
 	if token != "" {
 		s.midgardToken = token
+		zap.L().Info("Midgard token received from client is ", zap.String("token", s.midgardToken))
 	} else {
 		http.Error(w, "No token received from client", http.StatusInternalServerError)
 	}

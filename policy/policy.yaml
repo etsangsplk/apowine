@@ -1,43 +1,44 @@
 APIVersion: 1
 
+# RESTAPISpecs
 RESTAPISpecs:
-# Client Service 
-- name: client spec 
+
+- name: apowine-public-api
   description: Client API Service
   endpoints:
   - URI: "/drink"
     scopes:
-    - scope:default 
+    - scope:default
     public: true
     methods: [ GET, POST, PUT, DELETE]
   - URI: "/random"
     scopes:
-    - scope:default 
+    - scope:default
     public: true
     methods: [ GET, POST, PUT, DELETE]
   - URI: "/"
     scopes:
-    - scope:default 
-    public: true 
+    - scope:default
+    public: true
     methods: [ GET, POST, PUT, DELETE]
   associatedTags:
-  - spec:api=client
-# DRINKS SPEC 
-- name: drinks
+  - spec:rest=apowine-public
+
+- name: apowine-internal-api
   description: ApoWine API Service
   endpoints:
   - URI: "/beer"
     scopes:
-    - scope:default 
+    - scope:default
     methods: [ GET, POST, PUT, DELETE]
   - URI: "/random"
     scopes:
-    - scope:default 
-    public: true 
+    - scope:default
+    public: true
     methods: [ GET, POST, PUT, DELETE]
   - URI: "/wine"
     scopes:
-    - scope:protected 
+    - scope:protected
     methods: [ GET, POST, PUT, DELETE]
   - URI: "/wine/*"
     scopes:
@@ -45,68 +46,91 @@ RESTAPISpecs:
     methods: [ GET, POST, PUT, DELETE]
   - URI: "/beer/*"
     scopes:
-    - scope:default 
+    - scope:default
     methods: [ GET, POST, PUT, DELETE]
   associatedTags:
-  - spec:api=drinks
+  - spec:rest=apowine-internal
 
-services: 
-# Mongo DB 
-- name: mongodb
-  associatedTags:
-    - service=mongodb
-  selectors:
-  - - app=apowine-mongodb
-  exposedPort: 27017
-  exposedAPIs: 
-  - - api=demo 
+# Services
+services:
+
+- name: apowine-mongodb
+  type: TCP
   port: 27017
+  exposedPort: 27017
   hosts:
   - "mongodb.apowine.svc.cluster.local"
-  type: TCP
-# Apowine Server
-- name: server 
-  associatedTags:
-    - service=apowine
   selectors:
-  - - app=apowine-server
-  exposedPort: 3000
-  exposedAPIs: 
-  - - spec:api=drinks 
+  - - app=apowine-mongodb
+  associatedTags:
+    - srv:tcp=mongodb
+
+- name: apowine-server
+  type: HTTP
   port: 3000
+  exposedPort: 3000
   hosts:
   - "server.apowine.svc.cluster.local"
-  type: HTTP
-# Apowine UI 
-- name: apowine-ui 
-  associatedTags:
-    - service=ui
   selectors:
-  - - app=apowine-ui 
-  exposedPort: 4443
-  exposedAPIs: 
-  - - spec:api=client 
+  - - app=apowine-server
+  exposedAPIs:
+  - - spec:rest=apowine-internal
+  associatedTags:
+  - srv:api=apowine-server
+
+- name: apowine-ui
+  type: HTTP
   port: 3005
+  exposedPort: 4443
   hosts:
   - "apowine.aporeto.com"
-  type: HTTP
+  selectors:
+  - - app=apowine-ui
+  exposedAPIs:
+  - - spec:rest=apowine-public
+  associatedTags:
+  - srv:api=apowine-ui
 
-# TokenScopePolicies 
+# TokenScopePolicies
 tokenscopepolicies:
-- name: Apowine Default Scope  
+
+- name: apowine-internal-scope
+  subject:
+  - - app=beer-getter
+  - - app=wine-getter
   assignedScopes:
   - scope:default
-  subject:
-  - - "$namespace=/flash/demo/apowine"
-    - "$identity=processingunit"
+  - scope:protected
 
-# NetworkAccessPolicy 
-networkaccesspolicies:
-- name: Apowine Access Policy
+- name: apowine-ui-scope
   subject:
-  - - "$namespace=/flash/demo/apowine"
+  - - app=apowine-ui
+  assignedScopes:
+  - scope:default
+
+# NetworkAccessPolicy
+networkaccesspolicies:
+- name: apowine-access-policy
+  subject:
+  - - "$identity=processingunit"
   object:
-  - - service=mongodb
-  - - service=apowine 
-  - - service=dns 
+  - - srv:tcp=mongodb
+  - - srv:api=apowine-server
   action: "Allow"
+
+- name: allow-any-dns
+  subject:
+  - - "$identity=processingunit"
+  object:
+  - - srv:ext=dns
+  action: "Allow"
+
+externalServices:
+- name: any-dns
+  description: "represent any dns"
+  type: Network
+  network: 0.0.0.0/0
+  port: "53"
+  protocol: udp
+  associatedTags:
+  - srv:ext=dns

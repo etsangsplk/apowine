@@ -21,7 +21,7 @@ spec:
         image: aporeto/apowine-producerbeer:latest
         env:
            - name: APOWINE_SERVERURI
-             value: http://server.apowine.svc.cluster.local:3000/beer
+             value: http://server:3000/beer
            - name: APOWINE_LOGLEVEL
              value: debug
       restartPolicy: OnFailure

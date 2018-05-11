@@ -59,7 +59,7 @@ services:
   port: 27017
   exposedPort: 27017
   hosts:
-  - "mongodb.apowine.svc.cluster.local"
+  - "mongodb"
   selectors:
   - - app=apowine-mongodb
   associatedTags:
@@ -70,7 +70,7 @@ services:
   port: 3000
   exposedPort: 3000
   hosts:
-  - "server.apowine.svc.cluster.local"
+  - "server"
   selectors:
   - - app=apowine-server
   exposedAPIs:

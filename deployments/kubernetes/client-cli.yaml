@@ -27,7 +27,7 @@ spec:
             image: aporeto/apowine-clientcurl:latest
             env:
             - name: URI
-              value: "server.apowine.svc.cluster.local:3000/beer/random"
+              value: "server:3000/beer/random"
 ---
 apiVersion: extensions/v1beta1
 kind: ReplicaSet
@@ -58,4 +58,4 @@ spec:
             image: aporeto/apowine-clientcurl:latest
             env:
             - name: URI
-              value: "server.apowine.svc.cluster.local:3000/wine/random"
+              value: "server:3000/wine/random"

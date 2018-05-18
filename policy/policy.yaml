@@ -80,7 +80,7 @@ services:
 
 - name: apowine-ui
   type: HTTP
-  port: 3005
+  port: 43245
   exposedPort: 4443
   hosts:
   - "apowine.aporeto.com"

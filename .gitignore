@@ -5,5 +5,6 @@ source/producer/producer-wine/cmd/cmd
 source/server/cmd/server
 source/server/cmd/cmd
 source/frontend-ui/client/cmd/frontend
+source/frontend-ui/client/cmd/templates
 source/frontend-ui/client/cmd/cmd
 source/frontend-ui/client/cmd/docker/frontend

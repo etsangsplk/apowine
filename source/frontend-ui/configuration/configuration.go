@@ -14,6 +14,9 @@ type Configuration struct {
 	ServerAddress string
 	ClientAddress string
 
+	MidgardTokenRealm    string
+	MidgardTokenValidity string
+
 	LogFormat string
 	LogLevel  string
 }
@@ -27,15 +30,21 @@ func usage() {
 func LoadConfiguration() (*Configuration, error) {
 	flag.Usage = usage
 	flag.String("ServerAddress", "", "Server IP [Default: http://localhost:3000]")
-	flag.String("ClientAddress", "", "Server Address [Default: 3005]")
+	flag.String("ClientAddress", "", "Server Address [Default: 43245]")
 	flag.String("LogLevel", "", "Log level. Default to info (trace//debug//info//warn//error//fatal)")
 	flag.String("LogFormat", "", "Log Format. Default to human")
 
+	flag.String("MidgardTokenRealm", "", "Midgard realm [Default: Google]")
+	flag.String("MidgardTokenValidity", "", "Midgard token validity [Default: 720h]")
+
 	// Setting up default configuration
 	viper.SetDefault("ServerAddress", "http://localhost:3000")
-	viper.SetDefault("ClientAddress", ":3005")
+	viper.SetDefault("ClientAddress", ":43245")
 	viper.SetDefault("LogLevel", "info")
 	viper.SetDefault("LogFormat", "human")
+
+	viper.SetDefault("MidgardTokenRealm", "Google")
+	viper.SetDefault("MidgardTokenValidity", "720h")
 
 	// Binding ENV variables
 	// Each config will be of format TRIREME_XYZ as env variable, where XYZ

@@ -3,26 +3,37 @@ package client
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"html/template"
 	"io/ioutil"
 	"net/http"
+	"strconv"
 
-	"github.com/aporeto-inc/apowine/source/frontend-ui/templates"
 	"github.com/aporeto-inc/apowine/source/mongodb-lib"
+)
+
+const (
+	OAuthStateString = "apowine"
+	authenticated    = "authenticated"
+	idtoken          = "idtoken"
 )
 
 // Client holds data to connect to the serverß
 type Client struct {
-	serverAddress string
-	drinkName     string
-	beer          mongodb.Beer
-	wine          mongodb.Wine
+	serverAddress   string
+	drinkName       string
+	beer            mongodb.Beer
+	realm           string
+	validity        string
+	midgardToken    string
+	wine            mongodb.Wine
+	isAuthenticated bool
 }
 
 // GenerateClientPage generates HTML to manipulate data
-func GenerateClientPage(w http.ResponseWriter, r *http.Request) {
+func GenerateLoginPage(w http.ResponseWriter, r *http.Request) {
 
-	t, err := template.New("template").Parse(templates.UITemplate)
+	t, err := template.New("login.html").ParseFiles("/apowine/templates/login.html")
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
@@ -32,15 +43,108 @@ func GenerateClientPage(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
 
-	w.Header().Set("Content-Type", "text/html")
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 }
 
 // NewClient creates new client handler
-func NewClient(serverAddress string) *Client {
+func NewClient(serverAddress string, realm, validity string) *Client {
 
 	return &Client{
 		serverAddress: serverAddress,
+		validity:      validity,
+		realm:         realm,
 	}
+}
+
+func (c *Client) CatchToken(w http.ResponseWriter, r *http.Request) {
+
+	if err := r.ParseForm(); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	googleJWT := r.Form.Get(idtoken)
+	auth, err := strconv.ParseBool(r.Form.Get(authenticated))
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	c.isAuthenticated = auth
+
+	url := "https://api.console.aporeto.com/issue"
+
+	var jsonStr = []byte(fmt.Sprintf(`{"data":"%s","realm":"%s","validity":"%s"}`, googleJWT, c.realm, c.validity))
+	req, err := http.NewRequest("POST", url, bytes.NewBuffer(jsonStr))
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+	}
+	req.Header.Set("Content-Type", "application/json; charset=UTF-8")
+
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+	}
+	defer resp.Body.Close()
+
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+	}
+
+	var midgardResponse map[string]interface{}
+	json.Unmarshal(body, &midgardResponse)
+	if midgardResponse["token"] != nil {
+		c.midgardToken = midgardResponse["token"].(string)
+	} else {
+		http.Error(w, "Error from midgard issuing token", http.StatusInternalServerError)
+	}
+}
+
+func (c *Client) sendTokenToServer() error {
+	url := c.serverAddress + "/gettoken"
+
+	req, err := http.NewRequest("GET", url, bytes.NewBuffer([]byte("token")))
+	if err != nil {
+		return err
+	}
+
+	bearer := "Bearer " + c.midgardToken
+
+	req.Header.Set("Authorization", bearer)
+
+	client := &http.Client{}
+	_, err = client.Do(req)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// GenerateClientPage generates HTML to manipulate data
+func (c *Client) GenerateClientPage(w http.ResponseWriter, r *http.Request) {
+
+	if !c.isAuthenticated {
+		http.Error(w, "Please login again...", http.StatusInternalServerError)
+		return
+	}
+
+	if err := c.sendTokenToServer(); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+	}
+
+	t, err := template.New("homepage.html").ParseFiles("/apowine/templates/homepage.html")
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+	}
+
+	err = t.Execute(w, nil)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+	}
+
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 }
 
 // GenerateDrinkManipulator returns drinks based on type in JSON format
@@ -54,6 +158,7 @@ func (c *Client) GenerateDrinkManipulator(w http.ResponseWriter, r *http.Request
 		err := c.manipulateData(operation, r, &c.beer, mongodb.BEER)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusNotFound)
+			return
 		}
 		w.Header().Set("Content-Type", "application/json")
 		err = json.NewEncoder(w).Encode(c.beer)
@@ -66,6 +171,7 @@ func (c *Client) GenerateDrinkManipulator(w http.ResponseWriter, r *http.Request
 		err := c.manipulateData(operation, r, &c.wine, mongodb.WINE)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusNotFound)
+			return
 		}
 		w.Header().Set("Content-Type", "application/json")
 		err = json.NewEncoder(w).Encode(c.wine)
@@ -105,9 +211,16 @@ func (c *Client) manipulateData(operation string, r *http.Request, drinkTypeData
 			return err
 		}
 
-		_, err = http.Post(c.serverAddress+"/"+c.drinkName, "application/json", bytes.NewBuffer(jsonValue))
+		resp, err := http.Post(c.serverAddress+"/"+c.drinkName, "application/json", bytes.NewBuffer(jsonValue))
 		if err != nil {
 			return err
+		}
+		if resp.StatusCode != 200 {
+			errorData, err := ioutil.ReadAll(resp.Body)
+			if err != nil {
+				return err
+			}
+			return fmt.Errorf(string(errorData))
 		}
 	case "read":
 		id := r.URL.Query().Get("id")
@@ -115,9 +228,13 @@ func (c *Client) manipulateData(operation string, r *http.Request, drinkTypeData
 		if err != nil {
 			return err
 		}
+
 		data, err := ioutil.ReadAll(response.Body)
 		if err != nil {
 			return err
+		}
+		if response.StatusCode != 200 {
+			return fmt.Errorf(string(data))
 		}
 		reader := bytes.NewReader(data)
 		err = json.NewDecoder(reader).Decode(drinkTypeData)
@@ -142,9 +259,16 @@ func (c *Client) manipulateData(operation string, r *http.Request, drinkTypeData
 		if err != nil {
 			return err
 		}
-		_, err = client.Do(req)
+		resp, err := client.Do(req)
 		if err != nil {
 			return err
+		}
+		if resp.StatusCode != 200 {
+			errorData, err := ioutil.ReadAll(resp.Body)
+			if err != nil {
+				return err
+			}
+			return fmt.Errorf(string(errorData))
 		}
 	case "delete":
 		id := r.URL.Query().Get("id")
@@ -153,9 +277,16 @@ func (c *Client) manipulateData(operation string, r *http.Request, drinkTypeData
 		if err != nil {
 			return err
 		}
-		_, err = client.Do(req)
+		resp, err := client.Do(req)
 		if err != nil {
 			return err
+		}
+		if resp.StatusCode != 200 {
+			errorData, err := ioutil.ReadAll(resp.Body)
+			if err != nil {
+				return err
+			}
+			return fmt.Errorf(string(errorData))
 		}
 	}
 	return nil
@@ -170,7 +301,7 @@ func (c *Client) GenerateRandomDrinkManipulator(w http.ResponseWriter, r *http.R
 
 	response, err := http.Get(c.serverAddress + "/random")
 	if err != nil {
-		http.Error(w, err.Error(), 2)
+		http.Error(w, err.Error(), http.StatusUnprocessableEntity)
 	}
 	data, err := ioutil.ReadAll(response.Body)
 	if err != nil {
@@ -179,7 +310,7 @@ func (c *Client) GenerateRandomDrinkManipulator(w http.ResponseWriter, r *http.R
 	reader := bytes.NewReader(data)
 	err = json.NewDecoder(reader).Decode(&beer)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusUnprocessableEntity)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
 
 	json.NewDecoder(reader).Decode(&wine)

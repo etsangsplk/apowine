@@ -176,7 +176,7 @@ networkaccesspolicies:
   - - srv:api=apowine-server
   action: "Allow"
 
-- name: allow-any-dns
+- name: allow-dns-resolutions
   subject:
   - - "$identity=processingunit"
   object:
@@ -193,9 +193,8 @@ networkaccesspolicies:
 - name: allow-access-to-migard
   subject:
   - - app=apowine-ui
-  - - app=apowine-server
   object:
-  - - srv:ext=clients
+  - - srv:ext=midgard 
   action: "Allow"
 
 externalServices:
@@ -209,10 +208,19 @@ externalServices:
   - srv:ext=dns
 
 - name: clients
-  description: "represent any dns"
+  description: "Approved Client IPs"
   type: Network
   network: 0.0.0.0/0
   port: "1:65000"
   protocol: tcp
   associatedTags:
   - srv:ext=clients
+
+- name: signonprovider
+  description: "Singon provider"
+  type: Network
+  network: 104.154.144.151/32
+  port: "443"
+  protocol: tcp
+  associatedTags:
+  - srv:ext=midgard

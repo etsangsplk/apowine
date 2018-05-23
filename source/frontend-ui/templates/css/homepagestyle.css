@@ -15,6 +15,7 @@ visibility: hidden;
   color: darkread;
   text-align: center;
   margin-top: 20px;
+  cursor: pointer;
 }
 
 .beer {
@@ -40,6 +41,7 @@ visibility: hidden;
 }
 
 .more{
+  color: darkread;
   text-align:center;
   margin-top: 25%;
 }

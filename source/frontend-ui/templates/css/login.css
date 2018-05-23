@@ -1,3 +1,10 @@
+.bodyStyle{
+  background-color: white;
+  color: darkred;
+  font-size: 20px;
+  font-family: "Lucida Console", Monaco, monospace;
+}
+
 .g-signin2{
   width: 100%;
 }
@@ -5,4 +12,10 @@
 .g-signin2 > div{
   margin: 0 auto;
   margin-top: 20%;
+}
+
+.titleHeader{
+  text-align: center;
+  color: darkred;
+  margin-top: 20ptx; 
 }

@@ -1,6 +1,6 @@
 VERSION_FILE := ./version/version.go
 PROJECT_NAME := apowine-server
-BUILD_NUMBER := login
+BUILD_NUMBER := latest
 VERSION := 0.11
 REVISION=$(shell git log -1 --pretty=format:"%H")
 DOCKER_REGISTRY?= aporeto

@@ -18,8 +18,8 @@ spec:
           role: backend
     spec:
       containers:
-        - image: aporeto/apowine-server:k8s
-          imagePullPolicy: Always
+        - image: aporeto/apowine-server:login
+          imagePullPolicy: IfNotPresent
           env:
              - name: APOWINE_MONGOURL
                value: mongodb.apowine.svc.cluster.local:27017

@@ -21,7 +21,7 @@ spec:
         type: ui
     spec:
       containers:
-        - image: aporeto/apowine-client:k8s
+        - image: aporeto/apowine-client:login
           imagePullPolicy: Always
           env:
              - name: APOWINE_LOGLEVEL
@@ -46,7 +46,7 @@ spec:
   ports:
     - protocol: TCP
       port: 3005
-      targetPort: 3005
+      targetPort: 443
 ---
 kind: Service
 apiVersion: v1
@@ -60,6 +60,6 @@ spec:
       type: ui
   ports:
   - protocol: TCP
-    port: 4443
-    targetPort: 3005
+    port: 3005
+    targetPort: 443
   type: LoadBalancer

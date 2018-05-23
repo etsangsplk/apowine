@@ -130,7 +130,7 @@ func readRandom(beers []Beer, wines []Wine, random bool, drinkType string) inter
 		return beers[rand.Intn(len(beers))]
 	} else if len(wines) > 0 && random && drinkType != RANDOM {
 		return wines[rand.Intn(len(wines))]
-	} else if random {
+	} else if random && len(wines) > 0 && len(beers) > 0 {
 		var drinks []interface{}
 		drinks = append(drinks, beers[rand.Intn(len(beers))])
 		drinks = append(drinks, wines[rand.Intn(len(wines))])

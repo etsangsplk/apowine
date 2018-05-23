@@ -4,4 +4,4 @@ package version
 const VERSION = "0.11"
 
 // REVISION is the revision of apowine
-const REVISION = "29837f3745a814f37beef29accda80054cb442ad"
+const REVISION = "83ca8bc9f28f444c7a8ca04b4bbdf776a54b29d3"

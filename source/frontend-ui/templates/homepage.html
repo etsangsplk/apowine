@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>APOWINE</title>
+  <link rel="stylesheet" type="text/css" href="/static/css/homepagestyle.css" />
+  <script src="/static/js/app.js"></script>
+  <script src="/static/js/login.js"></script>
+  <meta name="google-signin-scope" content="openid profile email">
+  <meta name="google-signin-client_id" content="615518171834-rcrg24gvcl2bre5l1ur71j0242s1kg3m.apps.googleusercontent.com">
+  <script src="https://apis.google.com/js/platform.js?onload=onLoad" async defer></script>
+
+</head>
+
+<body class="bodyStyle">
+<h1 class="titleHeader">APOWINE</h1>
+<div class="beer">
+  <button class="button" onclick="RandomDrink('beer');">Drink Beer</button>
+</div>
+<div class="wine">
+  <button class="button" onclick="RandomDrink('wine');">Drink Wine</button>
+</div>
+
+<div class="signout" href="/" onclick="signOut();">Sign out</div>
+
+<div class="more">
+<div id="popupbox">
+<div class="beer">
+  <h2>BEER</h2>
+  <h4>CREATE A BEER</h4>
+  <input type="text" id="CbeerValue"  placeholder="beer name"/>
+  <button onclick="CreateDrink('beer');">Create</button>
+  <h4>READ BEER</h4>
+  <input type="text" id="RbeerID" placeholder="beer ID"/>
+  <button onclick="ReadDrink('beer');">Find</button>
+  <h4>UPDATE A BEER</h4>
+  <input type="text" id="UbeerID" placeholder="beer ID"/><br>
+  <input type="text" id="UbeerValue" placeholder="beer name"/>
+  <button onclick="UpdateDrink('beer');">Update</button>
+  <h4>DELETE A BEER</h4>
+  <input type="text" id="DbeerID" placeholder="beer ID"/>
+  <button onclick="DeleteDrink('beer');">Delete</button>
+</div>
+<div class="wine">
+  <h2>WINE</h2>
+  <h4>CREATE A WINE</h4>
+  <input type="text" id="CwineValue" placeholder="wine name"/>
+  <button onclick="CreateDrink('wine');">Create</button>
+  <h4>READ WINE</h4>
+  <input type="text" id="RwineID" placeholder="wine ID"/>
+  <button onclick="ReadDrink('wine');">Find</button>
+  <h4>UPDATE A WINE</h4>
+  <input type="text" id="UwineID" placeholder="wine ID"/><br>
+  <input type="text" id="UwineValue" placeholder="wine name"/>
+  <button onclick="UpdateDrink('wine');">Update</button>
+  <h4>DELETE A WINE</h4>
+  <input type="text" id="DwineID" placeholder="wine ID"/>
+  <button onclick="DeleteDrink('wine');">Delete</button>
+</div>
+
+<br />
+<center><a href="javascript:more('hide');">close</a></center>
+</div>
+
+<p><a href="javascript:more('show');">more>>></a></p>
+</div>
+
+</body>
+
+</html>

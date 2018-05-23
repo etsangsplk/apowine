@@ -1,0 +1,12 @@
+name: apowine-server
+associatedTags:
+  - service=ui
+selectors:
+- - app=apowine-ui
+exposedPort: 80
+exposedAPIs:
+- - spec:api=client
+port: 43245
+hosts:
+- "apowine-ui"
+type: HTTP

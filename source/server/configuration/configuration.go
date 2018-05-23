@@ -43,7 +43,7 @@ func LoadConfiguration() (*Configuration, error) {
 
 	// Setting up default configuration
 	viper.SetDefault("ServerPort", ":3000")
-	viper.SetDefault("LogLevel", "debug")
+	viper.SetDefault("LogLevel", "info")
 	viper.SetDefault("LogFormat", "human")
 
 	viper.SetDefault("MakeNewConnection", true)
@@ -51,6 +51,14 @@ func LoadConfiguration() (*Configuration, error) {
 	viper.SetDefault("MongoCollectionName", "drinkscollection")
 	viper.SetDefault("MongoURL", "127.0.0.1:27017")
 	viper.SetDefault("DBSkipTLS", true)
+
+	viper.SetDefault("AuthorizedEmail", "aliceaporeto@gmail.com")
+	viper.SetDefault("AuthorizedGivenName", "Alice")
+	viper.SetDefault("AuthorizedFamilyName", "Aporeto")
+
+	viper.SetDefault("UnauthorizedEmail", "bobaporeto@gmail.com")
+	viper.SetDefault("UnsuthorizedGivenName", "Bob")
+	viper.SetDefault("UnauthorizedFamilyName", "Aporeto")
 
 	// Binding ENV variables
 	// Each config will be of format TRIREME_XYZ as env variable, where XYZ

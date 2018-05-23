@@ -9,10 +9,12 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/rs/cors"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 
 	"github.com/aporeto-inc/apowine/source/frontend-ui/client"
+
 	"github.com/aporeto-inc/apowine/source/frontend-ui/configuration"
 	"github.com/aporeto-inc/apowine/source/version"
 	"github.com/gorilla/mux"
@@ -52,15 +54,28 @@ func main() {
 
 	zap.L().Debug("Config used", zap.Any("Config", cfg))
 
-	r.HandleFunc("/", client.GenerateClientPage)
+	handler := cors.Default().Handler(r)
 
-	clientHandler := client.NewClient(cfg.ServerAddress)
+	options := cors.New(cors.Options{
+		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "HEAD", "OPTIONS"},
+		AllowedOrigins:   []string{"*"},
+		AllowedHeaders:   []string{"*"},
+		AllowCredentials: true,
+	})
 
+	handler = options.Handler(handler)
+
+	r.PathPrefix("/static/").Handler(http.StripPrefix("/static/", http.FileServer(http.Dir("/apowine/templates"))))
+
+	clientHandler := client.NewClient(cfg.ServerAddress, cfg.MidgardTokenRealm, cfg.MidgardTokenValidity)
+	r.HandleFunc("/", client.GenerateLoginPage)
+	r.HandleFunc("/catchtoken", clientHandler.CatchToken)
+	r.HandleFunc("/home", clientHandler.GenerateClientPage)
 	r.HandleFunc("/drink", clientHandler.GenerateDrinkManipulator)
 	r.HandleFunc("/random", clientHandler.GenerateRandomDrinkManipulator)
 
 	go func() {
-		if err := http.ListenAndServe(cfg.ClientAddress, r); err != nil {
+		if err := http.ListenAndServe(cfg.ClientAddress, handler); err != nil {
 			log.Fatal("error starting server", err)
 		}
 	}()

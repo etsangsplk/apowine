@@ -1,0 +1,67 @@
+.bodyStyle{
+  background-color: white;
+  color: darkred;
+  font-size: 20px;
+  font-family: "Lucida Console", Monaco, monospace;
+}
+
+  #popupbox{
+position: relative;
+font-family: "Lucida Console", Monaco, monospace;
+visibility: hidden;
+}
+
+.signout{
+  color: darkread;
+  text-align: center;
+  margin-top: 20px;
+  cursor: pointer;
+}
+
+.beer {
+  float: left;
+  margin-left: 250px;
+  margin-top: 50px;
+}
+
+.wine {
+  float: right;
+  margin-right: 250px;
+  margin-top: 50px;
+}
+
+.random{
+  color: darkread;
+  text-align: center;
+  margin-top: 50px;
+}
+
+.titleHeader{
+  text-align: center;
+}
+
+.more{
+  color: darkread;
+  text-align:center;
+  margin-top: 25%;
+}
+
+.drink{
+  color: white;
+  background-color: white;
+}
+
+.button {
+    background-color: darkred;
+    border: none;
+    border-radius: 25px;
+    color: white;
+    padding: 80px 80px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 20px;
+    font-family: "Lucida Console", Monaco, monospace;
+    margin: 30px 30px;
+    cursor: pointer;
+}

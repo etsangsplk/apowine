@@ -1,0 +1,44 @@
+
+<html lang="en">
+
+  <head>
+    <meta name="google-signin-scope" content="openid profile email">
+    <meta name="google-signin-client_id" content="615518171834-rcrg24gvcl2bre5l1ur71j0242s1kg3m.apps.googleusercontent.com">
+    <script src="https://apis.google.com/js/platform.js" async defer></script>
+    <link rel="stylesheet" type="text/css" href="/static/css/login.css" />
+  </head>
+  <body>
+    <h1 class="titleHeader">APOWINE</h1>
+    
+    <div class="g-signin2" data-onsuccess="onSignIn"
+    data-theme="dark" data-width="300" data-height="50"
+    data-longtitle="true">button</div>
+
+    <script>
+      function onSignIn(googleUser) {
+
+        var profile = googleUser.getBasicProfile();
+        console.log("ID: " + profile.getId());
+        console.log('Full Name: ' + profile.getName());
+        console.log('Given Name: ' + profile.getGivenName());
+        console.log('Family Name: ' + profile.getFamilyName());
+        console.log("Image URL: " + profile.getImageUrl());
+        console.log("Email: " + profile.getEmail());
+
+        var id_token = googleUser.getAuthResponse().id_token;
+        console.log("ID Token: " + id_token);
+        var xhr = new XMLHttpRequest();
+        xhr.open('POST', '/catchtoken');
+        xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+        xhr.onload = function() {
+          window.location.href = "/home";
+        };
+        xhr.onerror=function(){
+          alert("Please login...")
+        }
+        xhr.send('idtoken=' + id_token + '&authenticated=' + true);
+      };
+
+    </script>
+  </body>
+</html>

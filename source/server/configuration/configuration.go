@@ -19,14 +19,6 @@ type Configuration struct {
 	MongoURL            string
 	DBSkipTLS           bool
 
-	AuthorizedEmail      string
-	AuthorizedGivenName  string
-	AuthorizedFamilyName string
-
-	UnauthorizedEmail      string
-	UnsuthorizedGivenName  string
-	UnauthorizedFamilyName string
-
 	LogFormat string
 	LogLevel  string
 }
@@ -48,14 +40,6 @@ func LoadConfiguration() (*Configuration, error) {
 	flag.String("MongoCollectionName", "", "Name of the collection in database [default: drinkscollection]")
 	flag.String("MongoURL", "", "URI to connect to DB [default: 127.0.0.1:27017]")
 	flag.Bool("DBSkipTLS", true, "Is valid TLS required for the DB server ? [default: true]")
-
-	flag.String("AuthorizedEmail", "", "Email address to allow the user to manipulate drinks [default: aliceaporeto@gmail.com]")
-	flag.String("AuthorizedGivenName", "", "Given name to allow the user to manipulate drinks [default: Alice]")
-	flag.String("AuthorizedFamilyName", "", "Family name to allow the user to manipulate drinks [default: Aporeto]")
-
-	flag.String("UnauthorizedEmail", "", "Email address to reject the user to manipulate drinks [default: bobaporeto@gmail.com]")
-	flag.String("UnsuthorizedGivenName", "", "Given name to reject the user to manipulate drinks [default: Bob]")
-	flag.String("UnauthorizedFamilyName", "", "Family name to reject the user to manipulate drinks [default: Aporeto]]")
 
 	// Setting up default configuration
 	viper.SetDefault("ServerPort", ":3000")

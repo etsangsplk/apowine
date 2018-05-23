@@ -6,6 +6,9 @@ function signOut() {
   var xhr = new XMLHttpRequest();
   xhr.open('POST', '/catchtoken');
   xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+  xhr.onload = function () {
+    window.location.href = "/";
+  };
   xhr.send('authenticated=' + false);
 }
 

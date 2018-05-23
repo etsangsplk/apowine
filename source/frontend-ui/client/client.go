@@ -69,7 +69,10 @@ func (c *Client) CatchToken(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	c.isAuthenticated = auth
+	if !auth {
+		c.midgardToken = ""
+		return
+	}
 
 	url := "https://api.console.aporeto.com/issue"
 
@@ -101,38 +104,20 @@ func (c *Client) CatchToken(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (c *Client) sendTokenToServer() error {
-	url := c.serverAddress + "/gettoken"
-
-	req, err := http.NewRequest("GET", url, bytes.NewBuffer([]byte("token")))
+func (c *Client) authenticatedRequest(verb, url, data string) (*http.Response, error) {
+	req, err := http.NewRequest(verb, url, bytes.NewBuffer([]byte(data)))
 	if err != nil {
-		return err
+		return nil, err
 	}
-
-	bearer := "Bearer " + c.midgardToken
-
-	req.Header.Set("Authorization", bearer)
+	req.Header.Set("Authorization", "Bearer "+c.midgardToken)
+	req.Header.Set("Content-Type", "application/json")
 
 	client := &http.Client{}
-	_, err = client.Do(req)
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return client.Do(req)
 }
 
 // GenerateClientPage generates HTML to manipulate data
 func (c *Client) GenerateClientPage(w http.ResponseWriter, r *http.Request) {
-
-	if !c.isAuthenticated {
-		http.Error(w, "Please login again...", http.StatusInternalServerError)
-		return
-	}
-
-	if err := c.sendTokenToServer(); err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-	}
 
 	t, err := template.New("homepage.html").ParseFiles("/apowine/templates/homepage.html")
 	if err != nil {
@@ -157,7 +142,7 @@ func (c *Client) GenerateDrinkManipulator(w http.ResponseWriter, r *http.Request
 		operation := r.URL.Query().Get("operationType")
 		err := c.manipulateData(operation, r, &c.beer, mongodb.BEER)
 		if err != nil {
-			http.Error(w, err.Error(), http.StatusNotFound)
+			http.Error(w, "Unauthorized request", http.StatusUnauthorized)
 			return
 		}
 		w.Header().Set("Content-Type", "application/json")
@@ -170,7 +155,7 @@ func (c *Client) GenerateDrinkManipulator(w http.ResponseWriter, r *http.Request
 		operation := r.URL.Query().Get("operationType")
 		err := c.manipulateData(operation, r, &c.wine, mongodb.WINE)
 		if err != nil {
-			http.Error(w, err.Error(), http.StatusNotFound)
+			http.Error(w, "Unauthorized request", http.StatusUnauthorized)
 			return
 		}
 		w.Header().Set("Content-Type", "application/json")
@@ -185,7 +170,7 @@ func (c *Client) manipulateData(operation string, r *http.Request, drinkTypeData
 
 	switch operation {
 	case "random":
-		response, err := http.Get(c.serverAddress + "/" + c.drinkName + "/random")
+		response, err := c.authenticatedRequest(http.MethodGet, c.serverAddress+"/"+c.drinkName+"/random", "")
 		if err != nil {
 			return err
 		}
@@ -211,7 +196,7 @@ func (c *Client) manipulateData(operation string, r *http.Request, drinkTypeData
 			return err
 		}
 
-		resp, err := http.Post(c.serverAddress+"/"+c.drinkName, "application/json", bytes.NewBuffer(jsonValue))
+		resp, err := c.authenticatedRequest(http.MethodPost, c.serverAddress+"/"+c.drinkName, string(jsonValue))
 		if err != nil {
 			return err
 		}
@@ -224,7 +209,7 @@ func (c *Client) manipulateData(operation string, r *http.Request, drinkTypeData
 		}
 	case "read":
 		id := r.URL.Query().Get("id")
-		response, err := http.Get(c.serverAddress + "/" + c.drinkName + "/" + id)
+		response, err := c.authenticatedRequest(http.MethodGet, c.serverAddress+"/"+c.drinkName+"/"+id, "")
 		if err != nil {
 			return err
 		}
@@ -254,12 +239,7 @@ func (c *Client) manipulateData(operation string, r *http.Request, drinkTypeData
 		if err != nil {
 			return err
 		}
-		client := &http.Client{}
-		req, err := http.NewRequest(http.MethodPut, c.serverAddress+"/"+c.drinkName, bytes.NewBuffer(jsonValue))
-		if err != nil {
-			return err
-		}
-		resp, err := client.Do(req)
+		resp, err := c.authenticatedRequest(http.MethodPut, c.serverAddress+"/"+c.drinkName, string(jsonValue))
 		if err != nil {
 			return err
 		}
@@ -272,12 +252,7 @@ func (c *Client) manipulateData(operation string, r *http.Request, drinkTypeData
 		}
 	case "delete":
 		id := r.URL.Query().Get("id")
-		client := &http.Client{}
-		req, err := http.NewRequest(http.MethodDelete, c.serverAddress+"/"+c.drinkName+"/"+id, nil)
-		if err != nil {
-			return err
-		}
-		resp, err := client.Do(req)
+		resp, err := c.authenticatedRequest(http.MethodDelete, c.serverAddress+"/"+c.drinkName+"/"+id, "")
 		if err != nil {
 			return err
 		}
@@ -299,7 +274,7 @@ func (c *Client) GenerateRandomDrinkManipulator(w http.ResponseWriter, r *http.R
 	var beer mongodb.Beer
 	var wine mongodb.Wine
 
-	response, err := http.Get(c.serverAddress + "/random")
+	response, err := c.authenticatedRequest(http.MethodGet, c.serverAddress+"/random", "")
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusUnprocessableEntity)
 	}

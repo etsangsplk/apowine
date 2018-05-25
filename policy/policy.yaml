@@ -1,5 +1,7 @@
 APIVersion: 1
 
+label: apowine-policies
+
 # RESTAPISpecs
 RESTAPISpecs:
 
@@ -124,7 +126,7 @@ services:
   - - spec:rest=apowine-internal
   associatedTags:
   - srv:api=apowine-server
-  JWTSigningCertificate: | 
+  JWTSigningCertificate: |
     -----BEGIN CERTIFICATE-----
     MIIBbzCCARWgAwIBAgIRAIKAsbQsPrxR9+UDZV963PkwCgYIKoZIzj0EAwIwKTEn
     MCUGA1UEAxMeQXBvcmV0byBJbmMuIFB1YmxpYyBTaWduaW5nIENBMB4XDTE4MDMy
@@ -194,7 +196,7 @@ networkaccesspolicies:
   subject:
   - - app=apowine-ui
   object:
-  - - srv:ext=midgard 
+  - - srv:ext=midgard
   action: "Allow"
 
 externalServices:

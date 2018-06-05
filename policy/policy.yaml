@@ -2,227 +2,227 @@ APIVersion: 1
 
 label: apowine-policies
 
-# RESTAPISpecs
-RESTAPISpecs:
+data:
+  restapispecs:
 
-- name: apowine-public-api
-  description: Client API Service
-  endpoints:
-  - URI: "/drink"
-    scopes:
-    - scope:default
-    public: true
-    methods: [ GET, POST, PUT, DELETE]
-  - URI: "/random"
-    scopes:
-    - scope:default
-    public: true
-    methods: [ GET, POST, PUT, DELETE]
-  - URI: "/home"
-    scopes:
-    - scope:default
-    public: true
-    methods: [ GET, POST, PUT, DELETE]
-  - URI: "/catchtoken"
-    scopes:
-    - scope:default
-    public: true
-    methods: [ GET, POST, PUT, DELETE]
-  - URI: "/"
-    scopes:
-    - scope:default
-    public: true
-    methods: [ GET, POST, PUT, DELETE]
-  - URI: "/*"
-    scopes:
-    - scope:default
-    public: true
-    methods: [ GET, POST, PUT, DELETE]
-  - URI: "/static/css/homepagestyle.css"
-    scopes:
-    - scope:default
-    public: true
-    methods: [ GET, POST, PUT, DELETE]
-  - URI: "/static/js/app.js"
-    scopes:
-    - scope:default
-    public: true
-    methods: [ GET, POST, PUT, DELETE]
-  - URI: "/static/js/login.js"
-    scopes:
-    - scope:default
-    public: true
-    methods: [ GET, POST, PUT, DELETE]
-  - URI: "/static/*"
-    scopes:
-    - scope:default
-    public: true
-    methods: [ GET, POST, PUT, DELETE]
-  - URI: "/static/*/*"
-    scopes:
-    - scope:default
-    public: true
-    methods: [ GET, POST, PUT, DELETE]
-  - URI: "/static/css/login.css"
-    scopes:
-    - scope:default
-    public: true
-    methods: [ GET, POST, PUT, DELETE]
-  associatedTags:
-  - spec:rest=apowine-public
+  - name: apowine-public-api
+    description: Client API Service
+    endpoints:
+    - URI: "/drink"
+      scopes:
+      - scope:default
+      public: true
+      methods: [ GET, POST, PUT, DELETE]
+    - URI: "/random"
+      scopes:
+      - scope:default
+      public: true
+      methods: [ GET, POST, PUT, DELETE]
+    - URI: "/home"
+      scopes:
+      - scope:default
+      public: true
+      methods: [ GET, POST, PUT, DELETE]
+    - URI: "/catchtoken"
+      scopes:
+      - scope:default
+      public: true
+      methods: [ GET, POST, PUT, DELETE]
+    - URI: "/"
+      scopes:
+      - scope:default
+      public: true
+      methods: [ GET, POST, PUT, DELETE]
+    - URI: "/*"
+      scopes:
+      - scope:default
+      public: true
+      methods: [ GET, POST, PUT, DELETE]
+    - URI: "/static/css/homepagestyle.css"
+      scopes:
+      - scope:default
+      public: true
+      methods: [ GET, POST, PUT, DELETE]
+    - URI: "/static/js/app.js"
+      scopes:
+      - scope:default
+      public: true
+      methods: [ GET, POST, PUT, DELETE]
+    - URI: "/static/js/login.js"
+      scopes:
+      - scope:default
+      public: true
+      methods: [ GET, POST, PUT, DELETE]
+    - URI: "/static/*"
+      scopes:
+      - scope:default
+      public: true
+      methods: [ GET, POST, PUT, DELETE]
+    - URI: "/static/*/*"
+      scopes:
+      - scope:default
+      public: true
+      methods: [ GET, POST, PUT, DELETE]
+    - URI: "/static/css/login.css"
+      scopes:
+      - scope:default
+      public: true
+      methods: [ GET, POST, PUT, DELETE]
+    associatedTags:
+    - spec:rest=apowine-public
 
-- name: apowine-internal-api
-  description: ApoWine API Service
-  endpoints:
-  - URI: "/beer"
-    scopes:
+  - name: apowine-internal-api
+    description: ApoWine API Service
+    endpoints:
+    - URI: "/beer"
+      scopes:
+      - scope:default
+      methods: [ GET, POST, PUT, DELETE]
+    - URI: "/random"
+      scopes:
+      - scope:default
+      public: true
+      methods: [ GET, POST, PUT, DELETE]
+    - URI: "/wine"
+      scopes:
+      - scope:protected
+      - data:organization=aporeto.com
+      methods: [ GET, POST, PUT, DELETE]
+    - URI: "/wine/*"
+      scopes:
+      - scope:protected
+      - data:organization=aporeto.com
+      methods: [ GET, POST, PUT, DELETE]
+    - URI: "/beer/*"
+      scopes:
+      - scope:default
+      methods: [ GET, POST, PUT, DELETE]
+    associatedTags:
+    - spec:rest=apowine-internal
+
+  # Services
+  services:
+  - name: apowine-mongodb
+    type: TCP
+    port: 27017
+    exposedPort: 27017
+    hosts:
+    - "mongodb.apowine.svc.cluster.local"
+    selectors:
+    - - app=apowine-mongodb
+    associatedTags:
+      - srv:tcp=mongodb
+
+  - name: apowine-server
+    type: HTTP
+    port: 3000
+    exposedPort: 3000
+    hosts:
+    - "server.apowine.svc.cluster.local"
+    selectors:
+    - - app=apowine-server
+    exposedAPIs:
+    - - spec:rest=apowine-internal
+    associatedTags:
+    - srv:api=apowine-server
+    JWTSigningCertificate: |
+      -----BEGIN CERTIFICATE-----
+      MIIBbzCCARWgAwIBAgIRAIKAsbQsPrxR9+UDZV963PkwCgYIKoZIzj0EAwIwKTEn
+      MCUGA1UEAxMeQXBvcmV0byBJbmMuIFB1YmxpYyBTaWduaW5nIENBMB4XDTE4MDMy
+      OTAxMDIzMFoXDTI4MDIwNTAxMDIzMFowJzEQMA4GA1UEChMHYXBvcmV0bzETMBEG
+      A1UEAxMKand0LXNpZ25lcjBZMBMGByqGSM49AgEGCCqGSM49AwEHA0IABLIiX78e
+      6A6ByxIPaMgBFlxw26naRb38eyOIIEorB8iMAui9LgTbrTomznSDW71kW0wNfFZp
+      8ot8w9s0DOrlxaSjIDAeMA4GA1UdDwEB/wQEAwIHgDAMBgNVHRMBAf8EAjAAMAoG
+      CCqGSM49BAMCA0gAMEUCIQDR60m7MbTQVLDG4SK85XIUO2bCbz39fhEcG+kIHlsR
+      iQIgG40/42tUvAk6MyzUYwDzHQqF/AROoyiX+HWfD1lXOds=
+      -----END CERTIFICATE-----
+
+  - name: apowine-ui
+    type: HTTP
+    port: 3005
+    exposedPort: 4443
+    hosts:
+    - "apowine.aporeto.com"
+    selectors:
+    - - app=apowine-ui
+    exposedAPIs:
+    - - spec:rest=apowine-public
+    associatedTags:
+    - srv:api=apowine-ui
+
+  # TokenScopePolicies
+  tokenscopepolicies:
+
+  - name: apowine-internal-scope
+    subject:
+    - - app=beer-getter
+    - - app=wine-getter
+    assignedScopes:
     - scope:default
-    methods: [ GET, POST, PUT, DELETE]
-  - URI: "/random"
-    scopes:
-    - scope:default
-    public: true
-    methods: [ GET, POST, PUT, DELETE]
-  - URI: "/wine"
-    scopes:
     - scope:protected
-    - data:organization=aporeto.com
-    methods: [ GET, POST, PUT, DELETE]
-  - URI: "/wine/*"
-    scopes:
-    - scope:protected
-    - data:organization=aporeto.com
-    methods: [ GET, POST, PUT, DELETE]
-  - URI: "/beer/*"
-    scopes:
+
+  - name: apowine-ui-scope
+    subject:
+    - - app=apowine-ui
+    assignedScopes:
     - scope:default
-    methods: [ GET, POST, PUT, DELETE]
-  associatedTags:
-  - spec:rest=apowine-internal
 
-# Services
-services:
+  # NetworkAccessPolicy
+  networkaccesspolicies:
 
-- name: apowine-mongodb
-  type: TCP
-  port: 27017
-  exposedPort: 27017
-  hosts:
-  - "mongodb.apowine.svc.cluster.local"
-  selectors:
-  - - app=apowine-mongodb
-  associatedTags:
-    - srv:tcp=mongodb
+  - name: apowine-access-policy
+    subject:
+    - - "$identity=processingunit"
+    object:
+    - - srv:tcp=mongodb
+    - - srv:api=apowine-server
+    action: "Allow"
 
-- name: apowine-server
-  type: HTTP
-  port: 3000
-  exposedPort: 3000
-  hosts:
-  - "server.apowine.svc.cluster.local"
-  selectors:
-  - - app=apowine-server
-  exposedAPIs:
-  - - spec:rest=apowine-internal
-  associatedTags:
-  - srv:api=apowine-server
-  JWTSigningCertificate: |
-    -----BEGIN CERTIFICATE-----
-    MIIBbzCCARWgAwIBAgIRAIKAsbQsPrxR9+UDZV963PkwCgYIKoZIzj0EAwIwKTEn
-    MCUGA1UEAxMeQXBvcmV0byBJbmMuIFB1YmxpYyBTaWduaW5nIENBMB4XDTE4MDMy
-    OTAxMDIzMFoXDTI4MDIwNTAxMDIzMFowJzEQMA4GA1UEChMHYXBvcmV0bzETMBEG
-    A1UEAxMKand0LXNpZ25lcjBZMBMGByqGSM49AgEGCCqGSM49AwEHA0IABLIiX78e
-    6A6ByxIPaMgBFlxw26naRb38eyOIIEorB8iMAui9LgTbrTomznSDW71kW0wNfFZp
-    8ot8w9s0DOrlxaSjIDAeMA4GA1UdDwEB/wQEAwIHgDAMBgNVHRMBAf8EAjAAMAoG
-    CCqGSM49BAMCA0gAMEUCIQDR60m7MbTQVLDG4SK85XIUO2bCbz39fhEcG+kIHlsR
-    iQIgG40/42tUvAk6MyzUYwDzHQqF/AROoyiX+HWfD1lXOds=
-    -----END CERTIFICATE-----
+  - name: allow-dns-resolutions
+    subject:
+    - - "$identity=processingunit"
+    object:
+    - - srv:ext=dns
+    action: "Allow"
 
-- name: apowine-ui
-  type: HTTP
-  port: 3005
-  exposedPort: 4443
-  hosts:
-  - "apowine.aporeto.com"
-  selectors:
-  - - app=apowine-ui
-  exposedAPIs:
-  - - spec:rest=apowine-public
-  associatedTags:
-  - srv:api=apowine-ui
+  - name: allow-access-from-external
+    subject:
+    - - srv:ext=clients
+    object:
+    - - app=apowine-ui
+    action: "Allow"
 
-# TokenScopePolicies
-tokenscopepolicies:
+  - name: allow-access-to-migard
+    subject:
+    - - app=apowine-ui
+    object:
+    - - srv:ext=midgard
+    action: "Allow"
 
-- name: apowine-internal-scope
-  subject:
-  - - app=beer-getter
-  - - app=wine-getter
-  assignedScopes:
-  - scope:default
-  - scope:protected
+  externalservices:
+  - name: any-dns
+    description: "represent any dns"
+    type: Network
+    network: 0.0.0.0/0
+    port: "53"
+    protocol: udp
+    associatedTags:
+    - srv:ext=dns
 
-- name: apowine-ui-scope
-  subject:
-  - - app=apowine-ui
-  assignedScopes:
-  - scope:default
+  - name: clients
+    description: "Approved Client IPs"
+    type: Network
+    network: 0.0.0.0/0
+    port: "1:65000"
+    protocol: tcp
+    associatedTags:
+    - srv:ext=clients
 
-# NetworkAccessPolicy
-networkaccesspolicies:
-- name: apowine-access-policy
-  subject:
-  - - "$identity=processingunit"
-  object:
-  - - srv:tcp=mongodb
-  - - srv:api=apowine-server
-  action: "Allow"
-
-- name: allow-dns-resolutions
-  subject:
-  - - "$identity=processingunit"
-  object:
-  - - srv:ext=dns
-  action: "Allow"
-
-- name: allow-access-from-external
-  subject:
-  - - srv:ext=clients
-  object:
-  - - app=apowine-ui
-  action: "Allow"
-
-- name: allow-access-to-migard
-  subject:
-  - - app=apowine-ui
-  object:
-  - - srv:ext=midgard
-  action: "Allow"
-
-externalServices:
-- name: any-dns
-  description: "represent any dns"
-  type: Network
-  network: 0.0.0.0/0
-  port: "53"
-  protocol: udp
-  associatedTags:
-  - srv:ext=dns
-
-- name: clients
-  description: "Approved Client IPs"
-  type: Network
-  network: 0.0.0.0/0
-  port: "1:65000"
-  protocol: tcp
-  associatedTags:
-  - srv:ext=clients
-
-- name: signonprovider
-  description: "Singon provider"
-  type: Network
-  network: 104.154.144.151/32
-  port: "443"
-  protocol: tcp
-  associatedTags:
-  - srv:ext=midgard
+  - name: signonprovider
+    description: "Singon provider"
+    type: Network
+    network: 104.154.144.151/32
+    port: "443"
+    protocol: tcp
+    associatedTags:
+    - srv:ext=midgard

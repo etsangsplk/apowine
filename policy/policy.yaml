@@ -1,8 +1,9 @@
 APIVersion: 1
 
+Label: ApowinePolicy 
+
 # RESTAPISpecs
 RESTAPISpecs:
-
 - name: apowine-public-api
   description: Client API Service
   endpoints:
@@ -166,14 +167,34 @@ tokenscopepolicies:
   assignedScopes:
   - scope:default
 
+# Service Dependencies
+
+servicedependencies:
+- name: server 
+  subject: 
+  - - srv:api=apowine-server 
+  object:
+  - - srv:tcp=mongodb 
+
+- name: ui 
+  subject:
+  - - srv:api=apowine-ui
+  object:
+  - - srv:api=apowine-server
+
+- name: pu-clients 
+  subject:
+  - - "$identity=processingunit"
+  object:
+  - - srv:api=apowine-server
+
 # NetworkAccessPolicy
 networkaccesspolicies:
 - name: apowine-access-policy
   subject:
   - - "$identity=processingunit"
   object:
-  - - srv:tcp=mongodb
-  - - srv:api=apowine-server
+  - - "$identity=processingunit"
   action: "Allow"
 
 - name: allow-dns-resolutions

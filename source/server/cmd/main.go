@@ -105,6 +105,8 @@ func main() {
 	// Waiting for a Sig
 	<-c
 
+	server.Stop()
+
 }
 
 // setLogs setups Zap to log at the specified log level and format

@@ -22,6 +22,7 @@ const (
 	COUNT = "count"
 )
 
+// Global Count ID since we create new NewMongoSession everytime
 var (
 	beerCountID bson.ObjectId
 	wineCountID bson.ObjectId
@@ -111,24 +112,25 @@ func (m *MongoDB) InsertOrUpdateCount(data *json.Decoder, drinkType string, valu
 	if drinkType == BEER {
 		count.Type = BEER
 		if beerCountID != "" {
-
 			count.ID = beerCountID
+
 			return m.collection.UpdateId(beerCountID, &count)
 		}
+
 		count.ID = bson.NewObjectId()
 		beerCountID = count.ID
-		fmt.Println(count.ID, "BEER")
+
 		return m.collection.Insert(&count)
 	}
 
 	if drinkType == WINE {
 		count.Type = WINE
 		if wineCountID != "" {
-
 			count.ID = wineCountID
-			fmt.Println(count.ID, "WINE")
+
 			return m.collection.UpdateId(wineCountID, &count)
 		}
+
 		count.ID = bson.NewObjectId()
 		wineCountID = count.ID
 
@@ -170,14 +172,29 @@ func (m *MongoDB) Read(data *json.Decoder, drinkType string, isRandom bool) (int
 
 // ReadCount based on drink type
 func (m *MongoDB) ReadCount(data *json.Decoder, drinkType string) (interface{}, error) {
-	var count []Count
+	var count Count
 
 	data.Decode(&count)
-	fmt.Println(drinkType)
-	err := m.collection.Find(bson.M{"type": drinkType}).All(&count)
+
+	var id bson.ObjectId
+	switch drinkType {
+	case BEER:
+		if beerCountID == "" {
+			return nil, fmt.Errorf("No beers served")
+		}
+		id = beerCountID
+	case WINE:
+		if wineCountID == "" {
+			return nil, fmt.Errorf("No wines served")
+		}
+		id = wineCountID
+	}
+
+	err := m.collection.Find(bson.M{"type": drinkType, "_id": id}).One(&count)
 	if err != nil {
 		return nil, err
 	}
+
 	zap.L().Debug("data", zap.Any("data", count))
 
 	return count, nil

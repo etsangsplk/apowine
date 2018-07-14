@@ -23,13 +23,14 @@ type Server struct {
 	beerReqCount  int
 	wineReqCount  int
 	mongoData     chan mongoData
+	stop          chan struct{}
 }
 
 type mongoData struct {
 	data      *json.Decoder
 	drinkName string
 	count     int
-	mongo     *mongodb.MongoDB
+	m         *mongodb.MongoDB
 }
 
 // NewServer creates a new server handler
@@ -47,6 +48,7 @@ func NewServer(mongo *mongodb.MongoDB, host []string, cfg *configuration.Configu
 		database:      cfg.MongoDatabaseName,
 		collection:    cfg.MongoCollectionName,
 		mongoData:     make(chan mongoData, 500),
+		stop:          make(chan struct{}),
 	}
 }
 
@@ -55,12 +57,27 @@ func (s *Server) Start() error {
 
 	go func() {
 		for {
-			mongodata := <-s.mongoData
-			if err := mongodata.mongo.InsertOrUpdateCount(mongodata.data, mongodata.drinkName, mongodata.count); err != nil {
-				zap.L().Error("error creating count record", zap.Error(err))
+			select {
+			case mongodata := <-s.mongoData:
+				if err := mongodata.m.InsertOrUpdateCount(mongodata.data, mongodata.drinkName, mongodata.count); err != nil {
+					zap.L().Error("error creating count record", zap.Error(err))
+				}
+				if s.newConnection {
+					mongodata.m.GetSession().Close()
+				}
+			case <-s.stop:
+				return
 			}
 		}
 	}()
+
+	return nil
+}
+
+// Stop the goroutine
+func (s *Server) Stop() error {
+
+	s.stop <- struct{}{}
 
 	return nil
 }
@@ -132,7 +149,7 @@ func (s *Server) RandomDrink(w http.ResponseWriter, r *http.Request) {
 		data:      decoder,
 		drinkName: drinkName,
 		count:     count,
-		mongo:     m,
+		m:         m,
 	}
 }
 

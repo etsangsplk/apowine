@@ -62,7 +62,7 @@ func main() {
 	if err != nil {
 		log.Fatal("error Creating Session", err)
 	}
-	fmt.Println("Coming HEre")
+
 	handler := cors.Default().Handler(r)
 
 	options := cors.New(cors.Options{

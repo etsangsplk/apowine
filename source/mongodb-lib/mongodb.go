@@ -2,6 +2,7 @@ package mongodb
 
 import (
 	"encoding/json"
+	"fmt"
 	"math/rand"
 	"time"
 
@@ -17,6 +18,13 @@ const (
 	WINE = "wine"
 	// RANDOM ...
 	RANDOM = "random"
+	// COUNT ...
+	COUNT = "count"
+)
+
+var (
+	beerCountID bson.ObjectId
+	wineCountID bson.ObjectId
 )
 
 // NewMongoSession creates a new database session with options
@@ -89,6 +97,47 @@ func (m *MongoDB) Insert(data *json.Decoder, drinkType string) error {
 	return nil
 }
 
+// InsertOrUpdateCount decodes and adds/updates a new/existing data into the database given a drinkType
+func (m *MongoDB) InsertOrUpdateCount(data *json.Decoder, drinkType string, value int) error {
+	var count Count
+
+	zap.L().Info("Inserting data into database")
+	zap.L().Info("Drinktype", zap.String("type", drinkType))
+
+	data.Decode(&count)
+	count.Count = value
+	count.Date = time.Now()
+
+	if drinkType == BEER {
+		count.Type = BEER
+		if beerCountID != "" {
+
+			count.ID = beerCountID
+			return m.collection.UpdateId(beerCountID, &count)
+		}
+		count.ID = bson.NewObjectId()
+		beerCountID = count.ID
+		fmt.Println(count.ID, "BEER")
+		return m.collection.Insert(&count)
+	}
+
+	if drinkType == WINE {
+		count.Type = WINE
+		if wineCountID != "" {
+
+			count.ID = wineCountID
+			fmt.Println(count.ID, "WINE")
+			return m.collection.UpdateId(wineCountID, &count)
+		}
+		count.ID = bson.NewObjectId()
+		wineCountID = count.ID
+
+		return m.collection.Insert(&count)
+	}
+
+	return nil
+}
+
 // Read decodes and lists data available in the database
 func (m *MongoDB) Read(data *json.Decoder, drinkType string, isRandom bool) (interface{}, error) {
 	var beers []Beer
@@ -116,8 +165,22 @@ func (m *MongoDB) Read(data *json.Decoder, drinkType string, isRandom bool) (int
 		m.collection.Find(bson.M{}).All(&beers)
 		m.collection.Find(bson.M{}).All(&wines)
 	}
-
 	return readRandom(beers, wines, isRandom, drinkType), nil
+}
+
+// ReadCount based on drink type
+func (m *MongoDB) ReadCount(data *json.Decoder, drinkType string) (interface{}, error) {
+	var count []Count
+
+	data.Decode(&count)
+	fmt.Println(drinkType)
+	err := m.collection.Find(bson.M{"type": drinkType}).All(&count)
+	if err != nil {
+		return nil, err
+	}
+	zap.L().Debug("data", zap.Any("data", count))
+
+	return count, nil
 }
 
 func readRandom(beers []Beer, wines []Wine, random bool, drinkType string) interface{} {

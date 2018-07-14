@@ -62,7 +62,7 @@ func main() {
 	if err != nil {
 		log.Fatal("error Creating Session", err)
 	}
-
+	fmt.Println("Coming HEre")
 	handler := cors.Default().Handler(r)
 
 	options := cors.New(cors.Options{
@@ -73,12 +73,14 @@ func main() {
 	handler = options.Handler(handler)
 
 	server := server.NewServer(session, host, cfg)
+	server.Start()
 
 	r.HandleFunc("/random", server.RandomDrink).Methods(http.MethodGet)
 
 	r.HandleFunc("/beer", server.AllDrinks).Methods(http.MethodGet)
 	r.HandleFunc("/beer", server.CreateDrinkEndPoint).Methods(http.MethodPost)
 	r.HandleFunc("/beer", server.UpdateDrinkEndPoint).Methods(http.MethodPut)
+	r.HandleFunc("/beer/count", server.GetBeerCount).Methods(http.MethodGet)
 	r.HandleFunc("/beer/random", server.RandomDrink).Methods(http.MethodGet)
 	r.HandleFunc("/beer/{id}", server.FindDrinkEndpoint).Methods(http.MethodGet)
 	r.HandleFunc("/beer/{id}", server.DeleteDrinkEndPoint).Methods(http.MethodDelete)
@@ -86,6 +88,7 @@ func main() {
 	r.HandleFunc("/wine", server.AllDrinks).Methods(http.MethodGet)
 	r.HandleFunc("/wine", server.CreateDrinkEndPoint).Methods(http.MethodPost)
 	r.HandleFunc("/wine", server.UpdateDrinkEndPoint).Methods(http.MethodPut)
+	r.HandleFunc("/wine/count", server.GetWineCount).Methods(http.MethodGet)
 	r.HandleFunc("/wine/random", server.RandomDrink).Methods(http.MethodGet)
 	r.HandleFunc("/wine/{id}", server.FindDrinkEndpoint).Methods(http.MethodGet)
 	r.HandleFunc("/wine/{id}", server.DeleteDrinkEndPoint).Methods(http.MethodDelete)

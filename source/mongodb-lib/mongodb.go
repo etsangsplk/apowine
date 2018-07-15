@@ -12,6 +12,8 @@ import (
 )
 
 const (
+	// DRINK ...
+	DRINK = "drink"
 	// BEER ...
 	BEER = "beer"
 	// WINE ...
@@ -79,6 +81,7 @@ func (m *MongoDB) Insert(data *json.Decoder, drinkType string) error {
 		data.Decode(&beer)
 		beer.ID = bson.NewObjectId()
 		beer.Type = BEER
+		beer.Category = DRINK
 		err := m.collection.Insert(&beer)
 		if err != nil {
 			return err
@@ -88,6 +91,7 @@ func (m *MongoDB) Insert(data *json.Decoder, drinkType string) error {
 		data.Decode(&wine)
 		wine.ID = bson.NewObjectId()
 		wine.Type = WINE
+		wine.Category = DRINK
 		err := m.collection.Insert(&wine)
 		if err != nil {
 			return err
@@ -108,6 +112,7 @@ func (m *MongoDB) InsertOrUpdateCount(data *json.Decoder, drinkType string, valu
 	data.Decode(&count)
 	count.Count = value
 	count.Date = time.Now()
+	count.Category = COUNT
 
 	if drinkType == BEER {
 		count.Type = BEER
@@ -151,14 +156,14 @@ func (m *MongoDB) Read(data *json.Decoder, drinkType string, isRandom bool) (int
 	switch drinkType {
 	case BEER:
 		data.Decode(&beers)
-		err := m.collection.Find(bson.M{"type": BEER}).All(&beers)
+		err := m.collection.Find(bson.M{"type": BEER, "category": DRINK}).All(&beers)
 		if err != nil {
 			return nil, err
 		}
 		zap.L().Debug("data", zap.Any("data", beers))
 	case WINE:
 		data.Decode(&wines)
-		err := m.collection.Find(bson.M{"type": WINE}).All(&wines)
+		err := m.collection.Find(bson.M{"type": WINE, "category": DRINK}).All(&wines)
 		if err != nil {
 			return nil, err
 		}
@@ -190,12 +195,12 @@ func (m *MongoDB) ReadCount(data *json.Decoder, drinkType string) (interface{}, 
 		id = wineCountID
 	}
 
-	err := m.collection.Find(bson.M{"type": drinkType, "_id": id}).One(&count)
+	err := m.collection.Find(bson.M{"type": drinkType, "_id": id, "category": COUNT}).One(&count)
 	if err != nil {
 		return nil, err
 	}
 
-	zap.L().Debug("data", zap.Any("data", count))
+	zap.L().Debug("count data", zap.Any("data", count))
 
 	return count, nil
 }

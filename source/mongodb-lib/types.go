@@ -18,6 +18,7 @@ type Beer struct {
 	ID       bson.ObjectId `bson:"_id" json:"id"`
 	BeerName string        `bson:"beername" json:"beername"`
 	Type     string        `bson:"type" json:"type"`
+	Category string        `bson:"category" json:"category"`
 }
 
 // Wine holds wine properties
@@ -25,12 +26,14 @@ type Wine struct {
 	ID       bson.ObjectId `bson:"_id" json:"id"`
 	WineName string        `bson:"winename" json:"winename"`
 	Type     string        `bson:"type" json:"type"`
+	Category string        `bson:"category" json:"category"`
 }
 
 // Count holds wine properties
 type Count struct {
-	ID    bson.ObjectId `bson:"_id" json:"id"`
-	Count int           `bson:"count" json:"count"`
-	Type  string        `bson:"type" json:"type"`
-	Date  time.Time     `bson:"date" json:"date"`
+	ID       bson.ObjectId `bson:"_id" json:"id"`
+	Count    int           `bson:"count" json:"count"`
+	Type     string        `bson:"type" json:"type"`
+	Date     time.Time     `bson:"date" json:"date"`
+	Category string        `bson:"category" json:"category"`
 }

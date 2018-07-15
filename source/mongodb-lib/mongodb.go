@@ -71,8 +71,8 @@ func (m *MongoDB) Insert(data *json.Decoder, drinkType string) error {
 	var beer Beer
 	var wine Wine
 
-	zap.L().Info("Inserting data into database")
-	zap.L().Info("Drinktype", zap.String("type", drinkType))
+	zap.L().Debug("Inserting data into database")
+	zap.L().Debug("Drinktype", zap.String("type", drinkType))
 
 	switch drinkType {
 	case BEER:
@@ -102,8 +102,8 @@ func (m *MongoDB) Insert(data *json.Decoder, drinkType string) error {
 func (m *MongoDB) InsertOrUpdateCount(data *json.Decoder, drinkType string, value int) error {
 	var count Count
 
-	zap.L().Info("Inserting data into database")
-	zap.L().Info("Drinktype", zap.String("type", drinkType))
+	zap.L().Debug("Inserting data into database")
+	zap.L().Debug("Drinktype", zap.String("type", drinkType))
 
 	data.Decode(&count)
 	count.Count = value
@@ -145,8 +145,8 @@ func (m *MongoDB) Read(data *json.Decoder, drinkType string, isRandom bool) (int
 	var beers []Beer
 	var wines []Wine
 
-	zap.L().Info("Reading data from database")
-	zap.L().Info("Drinktype", zap.String("type", drinkType))
+	zap.L().Debug("Reading data from database")
+	zap.L().Debug("Drinktype", zap.String("type", drinkType))
 
 	switch drinkType {
 	case BEER:
@@ -222,8 +222,8 @@ func readRandom(beers []Beer, wines []Wine, random bool, drinkType string) inter
 
 // ReadByID decodes and returns data given ID and type
 func (m *MongoDB) ReadByID(id string, data *json.Decoder, drinkType string) (interface{}, error) {
-	zap.L().Info("Reading data from database by given ID")
-	zap.L().Info("ID", zap.String("ID", id))
+	zap.L().Debug("Reading data from database by given ID")
+	zap.L().Debug("ID", zap.String("ID", id))
 
 	var beer Beer
 	var wine Wine
@@ -235,7 +235,7 @@ func (m *MongoDB) ReadByID(id string, data *json.Decoder, drinkType string) (int
 		if err != nil {
 			return nil, err
 		}
-		zap.L().Info("data", zap.Any("data", beer))
+		zap.L().Debug("data", zap.Any("data", beer))
 		return beer, nil
 	case WINE:
 		data.Decode(&wine)
@@ -243,7 +243,7 @@ func (m *MongoDB) ReadByID(id string, data *json.Decoder, drinkType string) (int
 		if err != nil {
 			return nil, err
 		}
-		zap.L().Info("data", zap.Any("data", wine))
+		zap.L().Debug("data", zap.Any("data", wine))
 		return wine, nil
 	}
 
@@ -252,8 +252,8 @@ func (m *MongoDB) ReadByID(id string, data *json.Decoder, drinkType string) (int
 
 // Update decodes and modifies data in database given type
 func (m *MongoDB) Update(data *json.Decoder, drinkType string) error {
-	zap.L().Info("Updating data in database")
-	zap.L().Info("Drinktype", zap.String("type", drinkType))
+	zap.L().Debug("Updating data in database")
+	zap.L().Debug("Drinktype", zap.String("type", drinkType))
 
 	var beer Beer
 	var wine Wine
@@ -265,14 +265,14 @@ func (m *MongoDB) Update(data *json.Decoder, drinkType string) error {
 		if err != nil {
 			return err
 		}
-		zap.L().Info("Updating data in database", zap.Any("data", beer))
+		zap.L().Debug("Updating data in database", zap.Any("data", beer))
 	case WINE:
 		data.Decode(&wine)
 		err := m.collection.UpdateId(wine.ID, &wine)
 		if err != nil {
 			return err
 		}
-		zap.L().Info("Updating data in database", zap.Any("data", wine))
+		zap.L().Debug("Updating data in database", zap.Any("data", wine))
 	}
 
 	return nil
@@ -280,7 +280,7 @@ func (m *MongoDB) Update(data *json.Decoder, drinkType string) error {
 
 // Delete decodes and removes a record given ID
 func (m *MongoDB) Delete(id string) error {
-	zap.L().Info("ID", zap.String("ID", id))
+	zap.L().Debug("ID", zap.String("ID", id))
 
 	err := m.collection.RemoveId(bson.ObjectIdHex(id))
 	if err != nil {

@@ -54,6 +54,7 @@ func NewServer(mongo *mongodb.MongoDB, host []string, cfg *configuration.Configu
 
 // Start pushing count to db
 func (s *Server) Start() error {
+	zap.L().Info("Start listening for requests")
 
 	go func() {
 		for {

@@ -25,7 +25,7 @@ Apowine is easy to deploy on kubernetes without any parameters or environment va
 
 1) Create a kubernetes cluster
 2) Log into your Aporeto account
-3) Go to `Kubernetes Cluster` and create a new one
+3) Go to `System --> Kubernetes Cluster` and create a new one
 4) Unzip the downloaded tgz
 5) run `kubectl apply -f /path/to/downloaded/folder`
 
@@ -54,5 +54,5 @@ kubectl apply -f apowine/deployments/kubernetes
 Then install the aporeto policy
 
 ```bash
-apoctl import --file apowine/policy/policy.yml -n /$APORETO_ACCOUNT/$K8S_CLUSTER_NAME/apowine --mode full
+apoctl api import --file apowine/policy/policy.yml -n /$APORETO_ACCOUNT/$K8S_CLUSTER_NAME/apowine --mode full
 ```

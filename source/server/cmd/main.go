@@ -75,20 +75,29 @@ func main() {
 	server := server.NewServer(session, host, cfg)
 	server.Start()
 
+	if cfg.UseHealth {
+		healthRouter := mux.NewRouter()
+		healthHandler := options.Handler(cors.Default().Handler(healthRouter))
+		healthRouter.HandleFunc("/beer/count", server.GetBeerCount).Methods(http.MethodGet)
+		healthRouter.HandleFunc("/wine/count", server.GetWineCount).Methods(http.MethodGet)
+		go func() {
+			if err := http.ListenAndServe(cfg.HealthPort, healthHandler); err != nil {
+				log.Fatal("error starting server", err)
+			}
+		}()
+	}
+
 	r.HandleFunc("/random", server.RandomDrink).Methods(http.MethodGet)
 
 	r.HandleFunc("/beer", server.AllDrinks).Methods(http.MethodGet)
 	r.HandleFunc("/beer", server.CreateDrinkEndPoint).Methods(http.MethodPost)
 	r.HandleFunc("/beer", server.UpdateDrinkEndPoint).Methods(http.MethodPut)
-	r.HandleFunc("/beer/count", server.GetBeerCount).Methods(http.MethodGet)
 	r.HandleFunc("/beer/random", server.RandomDrink).Methods(http.MethodGet)
 	r.HandleFunc("/beer/{id}", server.FindDrinkEndpoint).Methods(http.MethodGet)
 	r.HandleFunc("/beer/{id}", server.DeleteDrinkEndPoint).Methods(http.MethodDelete)
-
 	r.HandleFunc("/wine", server.AllDrinks).Methods(http.MethodGet)
 	r.HandleFunc("/wine", server.CreateDrinkEndPoint).Methods(http.MethodPost)
 	r.HandleFunc("/wine", server.UpdateDrinkEndPoint).Methods(http.MethodPut)
-	r.HandleFunc("/wine/count", server.GetWineCount).Methods(http.MethodGet)
 	r.HandleFunc("/wine/random", server.RandomDrink).Methods(http.MethodGet)
 	r.HandleFunc("/wine/{id}", server.FindDrinkEndpoint).Methods(http.MethodGet)
 	r.HandleFunc("/wine/{id}", server.DeleteDrinkEndPoint).Methods(http.MethodDelete)

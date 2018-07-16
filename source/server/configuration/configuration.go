@@ -13,6 +13,9 @@ import (
 type Configuration struct {
 	ServerPort string
 
+	UseHealth  bool
+	HealthPort string
+
 	MakeNewConnection   bool
 	MongoDatabaseName   string
 	MongoCollectionName string
@@ -32,6 +35,10 @@ func usage() {
 func LoadConfiguration() (*Configuration, error) {
 	flag.Usage = usage
 	flag.String("ServerPort", "", "Server Port [Default: 3000]")
+
+	flag.Bool("UseHealth", false, "Use health [Default: false]")
+	flag.String("HealthPort", "", "Health Port [Default: 5000]")
+
 	flag.String("LogLevel", "", "Log level. Default to info (trace//debug//info//warn//error//fatal)")
 	flag.String("LogFormat", "", "Log Format. Default to human")
 
@@ -43,6 +50,10 @@ func LoadConfiguration() (*Configuration, error) {
 
 	// Setting up default configuration
 	viper.SetDefault("ServerPort", ":3000")
+
+	viper.SetDefault("UseHealth", false)
+	viper.SetDefault("HealthPort", ":5000")
+
 	viper.SetDefault("LogLevel", "info")
 	viper.SetDefault("LogFormat", "human")
 

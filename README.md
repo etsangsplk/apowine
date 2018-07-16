@@ -56,3 +56,5 @@ Then install the aporeto policy
 ```bash
 apoctl api import --file apowine/policy/policy.yaml -n /$APORETO_ACCOUNT/$K8S_CLUSTER_NAME/apowine --mode full
 ```
+
+If running against pre-production, specify `policy-alpha.yaml`.

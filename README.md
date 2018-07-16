@@ -54,7 +54,7 @@ kubectl apply -f apowine/deployments/kubernetes
 Then install the aporeto policy
 
 ```bash
-apoctl api import --file apowine/policy/policy.yaml -n /$APORETO_ACCOUNT/$K8S_CLUSTER_NAME/apowine --mode full
+apoctl api import --file apowine/policy/policy.yaml -n /$APORETO_ACCOUNT/$K8S_CLUSTER_NAME/apowine 
 ```
 
 If running against pre-production, specify `policy-alpha.yaml`.

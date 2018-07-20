@@ -18,7 +18,7 @@ spec:
           role: backend
     spec:
       containers:
-        - image: aporeto/apowine-server:login
+        - image: aporeto/apowine-server:latest
           imagePullPolicy: IfNotPresent
           env:
              - name: APOWINE_MONGOURL

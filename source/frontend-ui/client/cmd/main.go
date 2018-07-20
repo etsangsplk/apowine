@@ -67,7 +67,7 @@ func main() {
 
 	r.PathPrefix("/static/").Handler(http.StripPrefix("/static/", http.FileServer(http.Dir("/apowine/templates"))))
 
-	clientHandler := client.NewClient(cfg.ServerAddress, cfg.MidgardTokenRealm, cfg.MidgardTokenValidity)
+	clientHandler := client.NewClient(cfg.ServerAddress, cfg.MidgardTokenRealm, cfg.MidgardTokenValidity, cfg.MidgardURL)
 	r.HandleFunc("/", client.GenerateLoginPage)
 	r.HandleFunc("/catchtoken", clientHandler.CatchToken)
 	r.HandleFunc("/home", clientHandler.GenerateClientPage)

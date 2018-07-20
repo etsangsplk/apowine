@@ -50,7 +50,7 @@ func main() {
 		log.Fatal("error adding wines to database", err)
 	}
 
-	zap.L().Info("Pushing beers to DB. Exiting in 5 seconds")
+	zap.L().Info("Pushing wine to DB. Exiting in 5 seconds")
 
 	<-time.After(time.Second * 5)
 

@@ -31,26 +31,15 @@ func usage() {
 // LoadConfiguration will load the configuration struct
 func LoadConfiguration() (*Configuration, error) {
 	flag.Usage = usage
-	flag.String("ServerPort", "", "Server Port [Default: 3000]")
-	flag.String("LogLevel", "", "Log level. Default to info (trace//debug//info//warn//error//fatal)")
-	flag.String("LogFormat", "", "Log Format. Default to human")
+	flag.String("ServerPort", ":3000", "Server Port ")
+	flag.String("LogLevel", "info", "Log level. (trace//debug//info//warn//error//fatal)")
+	flag.String("LogFormat", "human", "Log Format. ")
 
-	flag.String("MakeNewConnection", "", "To create new session every request [default: false]")
-	flag.String("MongoDatabaseName", "", "Name of the database [default: drinksdb]")
-	flag.String("MongoCollectionName", "", "Name of the collection in database [default: drinkscollection]")
-	flag.String("MongoURL", "", "URI to connect to DB [default: 127.0.0.1:27017]")
-	flag.Bool("DBSkipTLS", true, "Is valid TLS required for the DB server ? [default: true]")
-
-	// Setting up default configuration
-	viper.SetDefault("ServerPort", ":3000")
-	viper.SetDefault("LogLevel", "info")
-	viper.SetDefault("LogFormat", "human")
-
-	viper.SetDefault("MakeNewConnection", true)
-	viper.SetDefault("MongoDatabaseName", "drinksdb")
-	viper.SetDefault("MongoCollectionName", "drinkscollection")
-	viper.SetDefault("MongoURL", "127.0.0.1:27017")
-	viper.SetDefault("DBSkipTLS", true)
+	flag.Bool("MakeNewConnection", true, "To create new session every request ")
+	flag.String("MongoDatabaseName", "drinksdb", "Name of the database ")
+	flag.String("MongoCollectionName", "drinkscollection", "Name of the collection in database ")
+	flag.String("MongoURL", "127.0.0.1:27017", "URI to connect to DB ")
+	flag.Bool("DBSkipTLS", true, "Is valid TLS required for the DB server ? ")
 
 	viper.SetDefault("AuthorizedEmail", "aliceaporeto@gmail.com")
 	viper.SetDefault("AuthorizedGivenName", "Alice")

@@ -156,6 +156,7 @@ tokenscopepolicies:
   subject:
   - - app=beer-getter
   - - app=wine-getter
+  - - role=producer
   assignedScopes:
   - scope:default
   - scope:protected

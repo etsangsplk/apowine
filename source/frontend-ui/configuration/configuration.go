@@ -14,6 +14,7 @@ type Configuration struct {
 	ServerAddress string
 	ClientAddress string
 
+	MidgardURL           string
 	MidgardTokenRealm    string
 	MidgardTokenValidity string
 
@@ -29,22 +30,14 @@ func usage() {
 // LoadConfiguration will load the configuration struct
 func LoadConfiguration() (*Configuration, error) {
 	flag.Usage = usage
-	flag.String("ServerAddress", "", "Server IP [Default: http://localhost:3000]")
-	flag.String("ClientAddress", "", "Server Address [Default: 3005]")
-	flag.String("LogLevel", "", "Log level. Default to info (trace//debug//info//warn//error//fatal)")
-	flag.String("LogFormat", "", "Log Format. Default to human")
+	flag.String("ServerAddress", "http://localhost:3000", "Server IP ")
+	flag.String("ClientAddress", ":3005", "Server Address ")
+	flag.String("LogLevel", "info", "Log level. (trace//debug//info//warn//error//fatal)")
+	flag.String("LogFormat", "human", "Log Format. ")
 
-	flag.String("MidgardTokenRealm", "", "Midgard realm [Default: Google]")
-	flag.String("MidgardTokenValidity", "", "Midgard token validity [Default: 720h]")
-
-	// Setting up default configuration
-	viper.SetDefault("ServerAddress", "http://localhost:3000")
-	viper.SetDefault("ClientAddress", ":3005")
-	viper.SetDefault("LogLevel", "info")
-	viper.SetDefault("LogFormat", "human")
-
-	viper.SetDefault("MidgardTokenRealm", "Google")
-	viper.SetDefault("MidgardTokenValidity", "720h")
+	flag.String("MidgardURL", "https://api.console.aporeto.com/issue", "URL of midgard server ")
+	flag.String("MidgardTokenRealm", "Google", "Midgard realm ")
+	flag.String("MidgardTokenValidity", "720h", "Midgard token validity ")
 
 	// Binding ENV variables
 	// Each config will be of format TRIREME_XYZ as env variable, where XYZ

@@ -21,13 +21,15 @@ spec:
         type: ui
     spec:
       containers:
-        - image: aporeto/apowine-client:login
+        - image: aporeto/apowine-client:latest
           imagePullPolicy: Always
           env:
              - name: APOWINE_LOGLEVEL
                value: "debug"
              - name: APOWINE_SERVERADDRESS
                value: http://server.apowine.svc.cluster.local:3000
+             - name: APOWINE_MIDGARDURL
+               value: https://api.console.aporeto.com/issue
           name: apowine-client
           resources: {}
 status:
@@ -60,6 +62,6 @@ spec:
       type: ui
   ports:
   - protocol: TCP
-    port: 3005
-    targetPort: 443
+    port: 4443
+    targetPort: 3005
   type: LoadBalancer

@@ -10,6 +10,7 @@ import (
 	"strconv"
 
 	"github.com/aporeto-inc/apowine/source/mongodb-lib"
+	"go.uber.org/zap"
 )
 
 const (
@@ -25,6 +26,7 @@ type Client struct {
 	beer            mongodb.Beer
 	realm           string
 	validity        string
+	midgardURL      string
 	midgardToken    string
 	wine            mongodb.Wine
 	isAuthenticated bool
@@ -47,11 +49,12 @@ func GenerateLoginPage(w http.ResponseWriter, r *http.Request) {
 }
 
 // NewClient creates new client handler
-func NewClient(serverAddress string, realm, validity string) *Client {
+func NewClient(serverAddress string, realm, validity string, midgardURL string) *Client {
 
 	return &Client{
 		serverAddress: serverAddress,
 		validity:      validity,
+		midgardURL:    midgardURL,
 		realm:         realm,
 	}
 }
@@ -74,10 +77,8 @@ func (c *Client) CatchToken(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	url := "https://api.console.aporeto.com/issue"
-
 	var jsonStr = []byte(fmt.Sprintf(`{"data":"%s","realm":"%s","validity":"%s"}`, googleJWT, c.realm, c.validity))
-	req, err := http.NewRequest("POST", url, bytes.NewBuffer(jsonStr))
+	req, err := http.NewRequest("POST", c.midgardURL, bytes.NewBuffer(jsonStr))
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
@@ -113,7 +114,13 @@ func (c *Client) authenticatedRequest(verb, url, data string) (*http.Response, e
 	req.Header.Set("Content-Type", "application/json")
 
 	client := &http.Client{}
-	return client.Do(req)
+	resp, err := client.Do(req)
+	if err != nil {
+		zap.L().Error("Error getting response from server", zap.Error(err))
+		return nil, err
+	}
+
+	return resp, nil
 }
 
 // GenerateClientPage generates HTML to manipulate data
@@ -175,6 +182,7 @@ func (c *Client) manipulateData(operation string, r *http.Request, drinkTypeData
 			return err
 		}
 		data, err := ioutil.ReadAll(response.Body)
+		zap.L().Debug("Random drink data", zap.String("data", string(data)))
 		if err != nil {
 			return err
 		}

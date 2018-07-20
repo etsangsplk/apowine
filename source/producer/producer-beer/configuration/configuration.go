@@ -25,15 +25,10 @@ func usage() {
 // LoadConfiguration will load the configuration struct
 func LoadConfiguration() (*Configuration, error) {
 	flag.Usage = usage
-	flag.String("LogLevel", "", "Log level. Default to info (trace//debug//info//warn//error//fatal)")
-	flag.String("LogFormat", "", "Log Format. Default to human")
+	flag.String("LogLevel", "debug", "Log level. (trace//debug//info//warn//error//fatal)")
+	flag.String("LogFormat", "human", "Log Format. ")
 
-	flag.String("ServerURI", "", "Name of the database [default: http://localhost:3000/beer]")
-	// Setting up default configuration
-	viper.SetDefault("LogLevel", "debug")
-	viper.SetDefault("LogFormat", "human")
-
-	viper.SetDefault("ServerURI", "http://localhost:3000/beer")
+	flag.String("ServerURI", "http://localhost:3000/beer", "URI of the server ")
 
 	// Binding ENV variables
 	// Each config will be of format APOWINE_XYZ as env variable, where XYZ

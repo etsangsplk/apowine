@@ -54,7 +54,46 @@ kubectl apply -f apowine/deployments/kubernetes
 Then install the aporeto policy
 
 ```bash
-apoctl api import --file apowine/policy/policy.yaml -n /$APORETO_ACCOUNT/$K8S_CLUSTER_NAME/apowine 
+apoctl api import --file apowine/policy/policy.yaml -n /$APORETO_ACCOUNT/$K8S_CLUSTER_NAME/apowine
 ```
 
 If running against pre-production, specify `policy-alpha.yaml`.
+
+
+### Network Layer
+
+There are 4 network policies defined in the `policy.yaml` file:
+1) Allow anyone to access the UI (`allow-access-from-external`)
+2) Allow the UI to access midgard
+By default, this is going to midgard that is running on production.
+This means the `JWTSigningCertificate` defined in the service, should point to the midgard that is available in production.
+3) Allow anyone to do DNS resolution (`allow-dns-resolutions`)
+4) Any PU can talk to `mongodb` server or `apowine-server` service.
+
+
+_Note: we should provide a way to modify the midgard url using `APOWINE_MIDGARD_URL`_
+
+### Service Layer
+
+There are 3 services defined in the `policy.yaml` file:
+1) `apowine-mongodb` is exposing the database on port 27017
+2) `apowine-server` is exposed internally to the cluster at `server.apowine.svc.cluster.local:3000`.
+It has a `JWTSigningCertificate` to be able to verify the token and decode it to retrieve its claims.
+3) `apowine-ui` is publicly exposed on `apowine.aporeto.com` on port `4443`.
+
+
+### How to access the UI ?
+
+Find the External IP of the `client-public` service that is exposed via a Load Balancer:
+```
+kubectl -n apowine get svc
+```
+
+Edit your `/etc/hosts` to add an entry to apowine.aporeto.com:
+```
+sudo vim /etc/hosts
+...
+35.232.92.93    apowine.aporeto.com
+```
+
+Use your browser to access the UI on https://apowine.aporeto.com:4443/.

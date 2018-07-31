@@ -18,8 +18,8 @@ spec:
           role: backend
     spec:
       containers:
-        - image: aporeto/apowine-server:latest
-          imagePullPolicy: IfNotPresent
+        - image: aporeto/apowine-server:apostable
+          imagePullPolicy: Always
           env:
              - name: APOWINE_MONGOURL
                value: mongodb.apowine.svc.cluster.local:27017
@@ -27,6 +27,10 @@ spec:
                value: :3000
              - name: APOWINE_MAKENEWCONNECTION
                value: "true"
+             - name: APOWINE_USEHEALTH
+               value: "true"
+             - name: APOWINE_HEALTHPORT
+               value: :5001
           name: apowine-server
 ---
 kind: Service
@@ -42,3 +46,17 @@ spec:
     - protocol: TCP
       port: 3000
       targetPort: 3000
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: server-count
+  namespace: apowine
+spec:
+  selector:
+      app: apowine-server
+      role: backend
+  ports:
+    - protocol: TCP
+      port: 5001
+      targetPort: 5001

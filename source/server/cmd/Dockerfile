@@ -8,6 +8,6 @@ RUN mkdir -p /apowine
 
 ADD server /apowine/server
 
-EXPOSE 3000
+EXPOSE 3000 5001
 
 ENTRYPOINT ["/apowine/server"]

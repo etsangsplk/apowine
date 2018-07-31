@@ -46,7 +46,7 @@ func LoadConfiguration() (*Configuration, error) {
 	flag.Bool("DBSkipTLS", true, "Is valid TLS required for the DB server ? ")
 
 	flag.Bool("UseHealth", false, "Use health ")
-	flag.Int("HealthPort", 5000, "Health Port ")
+	flag.String("HealthPort", ":5000", "Health Port ")
 
 	viper.SetDefault("AuthorizedEmail", "aliceaporeto@gmail.com")
 	viper.SetDefault("AuthorizedGivenName", "Alice")

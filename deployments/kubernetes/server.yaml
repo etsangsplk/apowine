@@ -7,7 +7,7 @@ metadata:
   name: apowine-server
   namespace: apowine
 spec:
-  replicas: 3
+  replicas: 1
   selector:
     matchLabels:
       app: apowine-server

@@ -13,6 +13,9 @@ import (
 type Configuration struct {
 	ServerPort string
 
+	UseHealth  bool
+	HealthPort string
+
 	MakeNewConnection   bool
 	MongoDatabaseName   string
 	MongoCollectionName string
@@ -31,6 +34,7 @@ func usage() {
 // LoadConfiguration will load the configuration struct
 func LoadConfiguration() (*Configuration, error) {
 	flag.Usage = usage
+
 	flag.String("ServerPort", ":3000", "Server Port ")
 	flag.String("LogLevel", "info", "Log level. (trace//debug//info//warn//error//fatal)")
 	flag.String("LogFormat", "human", "Log Format. ")
@@ -40,6 +44,9 @@ func LoadConfiguration() (*Configuration, error) {
 	flag.String("MongoCollectionName", "drinkscollection", "Name of the collection in database ")
 	flag.String("MongoURL", "127.0.0.1:27017", "URI to connect to DB ")
 	flag.Bool("DBSkipTLS", true, "Is valid TLS required for the DB server ? ")
+
+	flag.Bool("UseHealth", false, "Use health ")
+	flag.Int("HealthPort", 5000, "Health Port ")
 
 	viper.SetDefault("AuthorizedEmail", "aliceaporeto@gmail.com")
 	viper.SetDefault("AuthorizedGivenName", "Alice")

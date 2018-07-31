@@ -2,6 +2,7 @@ package mongodb
 
 import (
 	"encoding/json"
+	"fmt"
 	"math/rand"
 	"time"
 
@@ -11,12 +12,22 @@ import (
 )
 
 const (
+	// DRINK ...
+	DRINK = "drink"
 	// BEER ...
 	BEER = "beer"
 	// WINE ...
 	WINE = "wine"
 	// RANDOM ...
 	RANDOM = "random"
+	// COUNT ...
+	COUNT = "count"
+)
+
+// Global Count ID since we create new NewMongoSession everytime
+var (
+	beerCountID bson.ObjectId
+	wineCountID bson.ObjectId
 )
 
 // NewMongoSession creates a new database session with options
@@ -62,14 +73,15 @@ func (m *MongoDB) Insert(data *json.Decoder, drinkType string) error {
 	var beer Beer
 	var wine Wine
 
-	zap.L().Info("Inserting data into database")
-	zap.L().Info("Drinktype", zap.String("type", drinkType))
+	zap.L().Debug("Inserting data into database")
+	zap.L().Debug("Drinktype", zap.String("type", drinkType))
 
 	switch drinkType {
 	case BEER:
 		data.Decode(&beer)
 		beer.ID = bson.NewObjectId()
 		beer.Type = BEER
+		beer.Category = DRINK
 		err := m.collection.Insert(&beer)
 		if err != nil {
 			return err
@@ -79,6 +91,7 @@ func (m *MongoDB) Insert(data *json.Decoder, drinkType string) error {
 		data.Decode(&wine)
 		wine.ID = bson.NewObjectId()
 		wine.Type = WINE
+		wine.Category = DRINK
 		err := m.collection.Insert(&wine)
 		if err != nil {
 			return err
@@ -89,25 +102,68 @@ func (m *MongoDB) Insert(data *json.Decoder, drinkType string) error {
 	return nil
 }
 
+// InsertOrUpdateCount decodes and adds/updates a new/existing data into the database given a drinkType
+func (m *MongoDB) InsertOrUpdateCount(data *json.Decoder, drinkType string, value int) error {
+	var count Count
+
+	zap.L().Debug("Inserting data into database")
+	zap.L().Debug("Drinktype", zap.String("type", drinkType))
+
+	data.Decode(&count)
+	count.Count = value
+	count.Date = time.Now()
+	count.Category = COUNT
+
+	if drinkType == BEER {
+		count.Type = BEER
+		if beerCountID != "" {
+			count.ID = beerCountID
+
+			return m.collection.UpdateId(beerCountID, &count)
+		}
+
+		count.ID = bson.NewObjectId()
+		beerCountID = count.ID
+
+		return m.collection.Insert(&count)
+	}
+
+	if drinkType == WINE {
+		count.Type = WINE
+		if wineCountID != "" {
+			count.ID = wineCountID
+
+			return m.collection.UpdateId(wineCountID, &count)
+		}
+
+		count.ID = bson.NewObjectId()
+		wineCountID = count.ID
+
+		return m.collection.Insert(&count)
+	}
+
+	return nil
+}
+
 // Read decodes and lists data available in the database
 func (m *MongoDB) Read(data *json.Decoder, drinkType string, isRandom bool) (interface{}, error) {
 	var beers []Beer
 	var wines []Wine
 
-	zap.L().Info("Reading data from database")
-	zap.L().Info("Drinktype", zap.String("type", drinkType))
+	zap.L().Debug("Reading data from database")
+	zap.L().Debug("Drinktype", zap.String("type", drinkType))
 
 	switch drinkType {
 	case BEER:
 		data.Decode(&beers)
-		err := m.collection.Find(bson.M{"type": BEER}).All(&beers)
+		err := m.collection.Find(bson.M{"type": BEER, "category": DRINK}).All(&beers)
 		if err != nil {
 			return nil, err
 		}
 		zap.L().Debug("data", zap.Any("data", beers))
 	case WINE:
 		data.Decode(&wines)
-		err := m.collection.Find(bson.M{"type": WINE}).All(&wines)
+		err := m.collection.Find(bson.M{"type": WINE, "category": DRINK}).All(&wines)
 		if err != nil {
 			return nil, err
 		}
@@ -116,8 +172,37 @@ func (m *MongoDB) Read(data *json.Decoder, drinkType string, isRandom bool) (int
 		m.collection.Find(bson.M{}).All(&beers)
 		m.collection.Find(bson.M{}).All(&wines)
 	}
-
 	return readRandom(beers, wines, isRandom, drinkType), nil
+}
+
+// ReadCount based on drink type
+func (m *MongoDB) ReadCount(data *json.Decoder, drinkType string) (interface{}, error) {
+	var count Count
+
+	data.Decode(&count)
+
+	var id bson.ObjectId
+	switch drinkType {
+	case BEER:
+		if beerCountID == "" {
+			return nil, fmt.Errorf("No beers served")
+		}
+		id = beerCountID
+	case WINE:
+		if wineCountID == "" {
+			return nil, fmt.Errorf("No wines served")
+		}
+		id = wineCountID
+	}
+
+	err := m.collection.Find(bson.M{"type": drinkType, "_id": id, "category": COUNT}).One(&count)
+	if err != nil {
+		return nil, err
+	}
+
+	zap.L().Debug("count data", zap.Any("data", count))
+
+	return count, nil
 }
 
 func readRandom(beers []Beer, wines []Wine, random bool, drinkType string) interface{} {
@@ -142,8 +227,8 @@ func readRandom(beers []Beer, wines []Wine, random bool, drinkType string) inter
 
 // ReadByID decodes and returns data given ID and type
 func (m *MongoDB) ReadByID(id string, data *json.Decoder, drinkType string) (interface{}, error) {
-	zap.L().Info("Reading data from database by given ID")
-	zap.L().Info("ID", zap.String("ID", id))
+	zap.L().Debug("Reading data from database by given ID")
+	zap.L().Debug("ID", zap.String("ID", id))
 
 	var beer Beer
 	var wine Wine
@@ -155,7 +240,7 @@ func (m *MongoDB) ReadByID(id string, data *json.Decoder, drinkType string) (int
 		if err != nil {
 			return nil, err
 		}
-		zap.L().Info("data", zap.Any("data", beer))
+		zap.L().Debug("data", zap.Any("data", beer))
 		return beer, nil
 	case WINE:
 		data.Decode(&wine)
@@ -163,7 +248,7 @@ func (m *MongoDB) ReadByID(id string, data *json.Decoder, drinkType string) (int
 		if err != nil {
 			return nil, err
 		}
-		zap.L().Info("data", zap.Any("data", wine))
+		zap.L().Debug("data", zap.Any("data", wine))
 		return wine, nil
 	}
 
@@ -172,8 +257,8 @@ func (m *MongoDB) ReadByID(id string, data *json.Decoder, drinkType string) (int
 
 // Update decodes and modifies data in database given type
 func (m *MongoDB) Update(data *json.Decoder, drinkType string) error {
-	zap.L().Info("Updating data in database")
-	zap.L().Info("Drinktype", zap.String("type", drinkType))
+	zap.L().Debug("Updating data in database")
+	zap.L().Debug("Drinktype", zap.String("type", drinkType))
 
 	var beer Beer
 	var wine Wine
@@ -185,14 +270,14 @@ func (m *MongoDB) Update(data *json.Decoder, drinkType string) error {
 		if err != nil {
 			return err
 		}
-		zap.L().Info("Updating data in database", zap.Any("data", beer))
+		zap.L().Debug("Updating data in database", zap.Any("data", beer))
 	case WINE:
 		data.Decode(&wine)
 		err := m.collection.UpdateId(wine.ID, &wine)
 		if err != nil {
 			return err
 		}
-		zap.L().Info("Updating data in database", zap.Any("data", wine))
+		zap.L().Debug("Updating data in database", zap.Any("data", wine))
 	}
 
 	return nil
@@ -200,7 +285,7 @@ func (m *MongoDB) Update(data *json.Decoder, drinkType string) error {
 
 // Delete decodes and removes a record given ID
 func (m *MongoDB) Delete(id string) error {
-	zap.L().Info("ID", zap.String("ID", id))
+	zap.L().Debug("ID", zap.String("ID", id))
 
 	err := m.collection.RemoveId(bson.ObjectIdHex(id))
 	if err != nil {

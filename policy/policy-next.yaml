@@ -1,0 +1,171 @@
+{{- $_ := required "you must set authType to either `None`, `OIDC`, `MTLS` or `JWT`" .Values.authType }}
+{{- $_ := required "you must set TLSType to either `Aporeto`, `LetsEncrypt`, `External` or `None`" .Values.TLSType }}
+APIVersion: 1
+label: apowine-policies
+
+data:
+  restapispecs:
+
+  - name: apowine-public-api
+    description: Client API Service
+    associatedTags: [spec:rest=apowine-public]
+    endpoints:
+    - URI: "/*"
+      methods: [ GET, POST, PUT, DELETE]
+      scopes:
+      - {{ .Values.usersRequiredScopes | default "scope:app=apowine-public" }}
+
+  - name: apowine-internal-api
+    description: Apowine API Service
+    associatedTags: [spec:rest=apowine-internal]
+    endpoints:
+    - URI: "/random"
+      methods: [ GET, POST, PUT, DELETE]
+      public: true
+
+    - URI: "/beer*"
+      methods: [ GET, POST, PUT, DELETE]
+      scopes:
+      - scope:app=apowine-public
+
+    - URI: "/wine*"
+      methods: [ GET, POST, PUT, DELETE]
+      scopes:
+      - scope:app=apowine-private
+      - data:organization=aporeto.com
+
+  # Services
+  services:
+  - name: apowine-mongodb
+    type: TCP
+    port: 27017
+    exposedPort: 27017
+    hosts:
+    - "mongodb.{{ .Values.k8sNamespace | default "apowine" }}.svc.cluster.local"
+    selectors:
+    - - app=apowine-mongodb
+    associatedTags:
+      - srv:tcp=mongodb
+
+  - name: apowine-server
+    type: HTTP
+    port: 3000
+    exposedPort: 3000
+    authorizationType: JWT
+    hosts:
+    - "server.{{ .Values.k8sNamespace | default "apowine" }}.svc.cluster.local"
+    selectors:
+    - - app=apowine-server
+    exposedAPIs:
+    - - spec:rest=apowine-internal
+    associatedTags:
+    - srv:api=apowine-server
+
+  - name: apowine-ui
+    type: HTTP
+    port: 3005
+    exposedPort: 4443
+    publicApplicationPort: 443
+    hosts:
+    - {{ required "you must set host" .Values.host }}
+    selectors:
+    - - app=apowine-ui
+    exposedAPIs:
+    - - spec:rest=apowine-public
+    associatedTags:
+    - srv:api=apowine-ui
+    authorizationType: {{ .Values.authType }}
+
+    {{- if eq .Values.authType "OIDC" }}
+    OIDCProviderURL: {{ required "you must set OIDCProviderURL" .Values.OIDCProviderURL }}
+    OIDCClientID: {{ required "you must set OIDCClientID" .Values.OIDCClientID }}
+    OIDCClientSecret: {{ required "you must set OIDCClientSecret" .Values.OIDCClientSecret }}
+    {{- end }}
+
+    {{- if eq .Values.authType "MTLS" }}
+    MTLSCertificateAuthority: {{ .Values.MTLSCertificateAuthority }}
+    {{- end }}
+
+     {{- if eq .Values.authType "JWT" }}
+    MTLSCertificateAuthority: {{ .Values.MTLSCertificateAuthority }}
+    {{- end }}
+
+    TLSType: {{ .Values.TLSType }}
+
+    {{- if eq .Values.TLSType "External" }}
+    TLSCertificate: {{ required "you must set TLSCertificate" .Values.TLSCertificate }}
+    TLSCertificateKey: {{ required "you must set TLSCertificateKey" .Values.TLSCertificateKey }}
+    {{- end }}
+
+
+  # TokenScopePolicies
+  tokenscopepolicies:
+
+  - name: apowine-internal-scope
+    subject:
+    - - app=beer-getter
+    - - app=wine-getter
+    - - role=producer
+    assignedScopes:
+    - scope:app=apowine-public
+    - scope:app=apowine-private
+
+  - name: apowine-ui-scope
+    subject:
+    - - app=apowine-ui
+    assignedScopes:
+    - scope:app=apowine-public
+
+  # NetworkAccessPolicy
+  networkaccesspolicies:
+
+  - name: apowine-access-policy
+    action: "Allow"
+    subject:
+    - - "$namespace={{ .Namespace }}"
+      - "$identity=processingunit"
+    object:
+    - - "$namespace={{ .Namespace }}"
+      - "$identity=processingunit"
+
+  - name: allow-dns-resolutions
+    action: "Allow"
+    subject:
+    - - "$namespace={{ .Namespace }}"
+      - "$identity=processingunit"
+    object:
+    - - "$namespace={{ .Namespace }}"
+      - ext:net=any-dns
+
+  - name: allow-access-from-external
+    action: "Allow"
+    subject:
+    - - "$namespace={{ .Namespace }}"
+      - ext:net=any-tcp
+    object:
+    - - "$namespace={{ .Namespace }}"
+      - app=apowine-ui
+
+  externalnetworks:
+  - name: any-dns
+    description: "Represents any dns connection"
+    entries:
+    - 0.0.0.0/0
+    ports:
+    - "53"
+    protocols:
+    - udp
+    associatedTags:
+    - ext:net=any-dns
+
+  - name: any-tcp
+    description: "Represents any tcp connection"
+    entries:
+    - 0.0.0.0/0
+    ports:
+    - "80"
+    - "443"
+    protocols:
+    - tcp
+    associatedTags:
+    - ext:net=any-tcp

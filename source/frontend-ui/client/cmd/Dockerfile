@@ -1,7 +1,5 @@
 FROM alpine
 
-MAINTAINER Aporeto Inc <info@aporeto.com>
-
 RUN apk update && apk --no-cache add curl && apk add --no-cache bash
 
 RUN mkdir -p /apowine
